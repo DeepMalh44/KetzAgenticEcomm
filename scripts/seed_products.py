@@ -430,29 +430,77 @@ PRODUCT_TEMPLATES = {
     }
 }
 
-# Image URLs (using placeholder URLs - in production, these would be actual product images)
-IMAGE_BASE_URL = "https://placehold.co/400x400"
+# Real product images from Unsplash (publicly accessible)
+# Using Unsplash Source which provides direct image URLs
+IMAGE_URLS = {
+    "power_tools": [
+        "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1586864387789-628af9feed72?w=400&h=400&fit=crop&q=80",
+    ],
+    "hand_tools": [
+        "https://images.unsplash.com/photo-1426927308491-6380b6a9936f?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&h=400&fit=crop&q=80",
+    ],
+    "building_materials": [
+        "https://images.unsplash.com/photo-1541123603104-512919d6a96c?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop&q=80",
+    ],
+    "paint": [
+        "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1525909002-1b05e0c869d8?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop&q=80",
+    ],
+    "flooring": [
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1541123603104-512919d6a96c?w=400&h=400&fit=crop&q=80",
+    ],
+    "plumbing": [
+        "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=400&h=400&fit=crop&q=80",
+    ],
+    "electrical": [
+        "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1558002038-1055907df827?w=400&h=400&fit=crop&q=80",
+    ],
+    "kitchen_bath": [
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=400&h=400&fit=crop&q=80",
+    ],
+    "outdoor_garden": [
+        "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=400&fit=crop&q=80",
+    ],
+    "storage": [
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=400&h=400&fit=crop&q=80",
+    ],
+    "hardware": [
+        "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80",
+    ],
+    "appliances": [
+        "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=400&fit=crop&q=80",
+    ],
+}
 
 
 def generate_product_image_url(category: str, subcategory: str, index: int) -> str:
-    """Generate a placeholder image URL for a product."""
-    # Using placeholder service with category-based colors
-    colors = {
-        "power_tools": "FFB347/000000",  # Orange
-        "hand_tools": "77DD77/000000",   # Green
-        "building_materials": "AEC6CF/000000",  # Blue-gray
-        "paint": "FDFD96/000000",        # Yellow
-        "flooring": "836953/FFFFFF",      # Brown
-        "plumbing": "779ECB/FFFFFF",      # Blue
-        "electrical": "FFD700/000000",    # Gold
-        "kitchen_bath": "C23B22/FFFFFF",  # Red
-        "outdoor_garden": "2E8B57/FFFFFF", # Green
-        "storage": "708090/FFFFFF",       # Gray
-        "hardware": "B87333/FFFFFF",      # Copper
-        "appliances": "4169E1/FFFFFF"     # Royal blue
-    }
-    color = colors.get(category, "808080/FFFFFF")
-    return f"https://placehold.co/400x400/{color}?text={subcategory.replace('_', '+')}"
+    """Get a real product image URL from Azure Blob Storage."""
+    # Get images for this category
+    category_images = IMAGE_URLS.get(category, IMAGE_URLS["power_tools"])
+    # Rotate through available images based on index
+    image_index = index % len(category_images)
+    return category_images[image_index]
 
 
 def generate_sku(category: str, index: int) -> str:

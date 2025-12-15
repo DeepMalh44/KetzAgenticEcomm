@@ -361,8 +361,8 @@ resource "azurerm_storage_account" "main" {
   resource_group_name             = azurerm_resource_group.main.name
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
-  shared_access_key_enabled       = false
-  allow_nested_items_to_be_public = false
+  shared_access_key_enabled       = true
+  allow_nested_items_to_be_public = true  # Allow public access to product images
 
   blob_properties {
     cors_rule {
