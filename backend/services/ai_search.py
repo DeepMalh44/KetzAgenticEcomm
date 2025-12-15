@@ -163,11 +163,11 @@ class AISearchService:
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
         limit: int = 10,
-        use_semantic: bool = False  # Disabled - requires Standard tier
+        use_semantic: bool = True  # Enabled - Standard tier available
     ) -> List[Dict[str, Any]]:
         """
-        Search for products using full-text search.
-        Semantic search requires Standard tier or higher.
+        Search for products using semantic search.
+        Semantic search provides better understanding of search intent.
         """
         # Build filter
         filters = []
@@ -179,6 +179,8 @@ class AISearchService:
             filters.append(f"price le {max_price}")
         
         filter_str = " and ".join(filters) if filters else None
+        
+        logger.info(f"Searching with semantic={use_semantic}, query={query}, filter={filter_str}")
         
         # Perform search
         results = self.search_client.search(

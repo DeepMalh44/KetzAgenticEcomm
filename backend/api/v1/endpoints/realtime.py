@@ -10,7 +10,7 @@ import asyncio
 import base64
 import json
 import logging
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
 import uuid
 
@@ -27,6 +27,17 @@ from agents.image_search_agent import ImageSearchAgent
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
+
+
+def serialize_for_json(obj: Any) -> Any:
+    """Recursively convert datetime objects to ISO strings for JSON serialization."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, dict):
+        return {k: serialize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_for_json(item) for item in obj]
+    return obj
 
 
 # System prompt for the home improvement assistant
@@ -66,10 +77,20 @@ You help customers with:
 - search_products_by_image: Find visually similar products using image embeddings
 - get_product_details: Get detailed information about a specific product
 - check_inventory: Check product availability and stock levels
+- add_to_cart: Add a product to the shopping cart (requires product_id - search first if needed)
+- view_cart: Show the customer's shopping cart
+- remove_from_cart: Remove a product from the cart
+- clear_cart: Clear all items from the cart
 - create_order: Place an order for products
 - get_order_status: Check the status of an existing order
 - initiate_return: Start a return process for a product
 - get_project_recommendations: Get recommended products for a DIY project
+
+## Cart Workflow:
+When a customer asks to add something to their cart:
+1. First, use search_products to find the product and get its ID
+2. Then, use add_to_cart with the product_id from the search results
+3. Confirm to the customer that the item was added
 
 Always be helpful and guide customers toward finding exactly what they need for their home improvement projects!
 """
@@ -250,6 +271,61 @@ TOOLS = [
             },
             "required": ["project_type"]
         }
+    },
+    {
+        "type": "function",
+        "name": "add_to_cart",
+        "description": "Add a product to the customer's shopping cart by searching for it by name. Use this when a customer wants to add an item to their cart.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "product_name": {
+                    "type": "string", 
+                    "description": "The name or description of the product to search for and add to cart (e.g., 'DeWalt drill', 'hardwood flooring', 'hammer')"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "description": "Number of items to add (default 1)",
+                    "default": 1
+                }
+            },
+            "required": ["product_name"]
+        }
+    },
+    {
+        "type": "function",
+        "name": "view_cart",
+        "description": "Show the customer their current shopping cart contents.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "function",
+        "name": "remove_from_cart",
+        "description": "Remove a product from the customer's shopping cart.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "string",
+                    "description": "The product ID to remove from cart"
+                }
+            },
+            "required": ["product_id"]
+        }
+    },
+    {
+        "type": "function",
+        "name": "clear_cart",
+        "description": "Clear all items from the customer's shopping cart.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
     }
 ]
 
@@ -333,6 +409,8 @@ class RealtimeSession:
     
     async def configure_session(self):
         """Send session configuration to GPT-4o Realtime."""
+        print(f"[CONFIG] Configuring session with {len(TOOLS)} tools")
+        print(f"[CONFIG] Tools: {[t['name'] for t in TOOLS]}")
         config = {
             "type": "session.update",
             "session": {
@@ -362,6 +440,7 @@ class RealtimeSession:
     async def handle_tool_call(self, tool_name: str, arguments: dict) -> str:
         """Execute a tool call and return the result."""
         logger.info("Handling tool call", tool=tool_name, args=arguments, session_id=self.session_id)
+        print(f"[TOOL CALL] {tool_name} with args: {arguments}")  # Debug print
         
         try:
             if tool_name == "search_products":
@@ -380,10 +459,72 @@ class RealtimeSession:
                 result = await self.image_agent.search_similar(**arguments)
             elif tool_name == "get_project_recommendations":
                 result = await self.shopping_agent.get_project_recommendations(**arguments)
+            elif tool_name == "add_to_cart":
+                # Search by product name and add to cart
+                product_name = arguments.get("product_name", "")
+                quantity = arguments.get("quantity", 1)
+                print(f"[ADD TO CART] Searching for: '{product_name}', quantity={quantity}")
+                
+                product = None
+                
+                # Search for the product by name
+                if product_name:
+                    print(f"[ADD TO CART] Searching products with query: {product_name}")
+                    search_results = await self.shopping_agent.search_products(query=product_name, limit=1)
+                    print(f"[ADD TO CART] Search results: {search_results}")
+                    
+                    if search_results.get("products") and len(search_results["products"]) > 0:
+                        found_product = search_results["products"][0]
+                        found_product_id = found_product["id"]
+                        print(f"[ADD TO CART] Found product: {found_product['name']} (ID: {found_product_id})")
+                        
+                        # Get full product details from Cosmos DB
+                        product = await self.app_state.cosmos.get_product(found_product_id)
+                        print(f"[ADD TO CART] Cosmos lookup result: {product is not None}")
+                        
+                        # If Cosmos lookup fails, use the search result directly
+                        if not product:
+                            print(f"[ADD TO CART] Using search result directly (Cosmos lookup failed)")
+                            product = found_product
+                
+                if product:
+                    result = {
+                        "success": True,
+                        "action": "add_to_cart",
+                        "product": product,
+                        "quantity": quantity,
+                        "message": f"Added {quantity} x {product['name']} to your cart."
+                    }
+                    print(f"[ADD TO CART] Success: {result['message']}")
+                else:
+                    result = {"success": False, "error": f"Could not find product matching: {product_name}"}
+                    print(f"[ADD TO CART] Failed: No products found")
+            elif tool_name == "view_cart":
+                result = {
+                    "success": True,
+                    "action": "view_cart",
+                    "message": "Opening your shopping cart..."
+                }
+            elif tool_name == "remove_from_cart":
+                product_id = arguments.get("product_id")
+                result = {
+                    "success": True,
+                    "action": "remove_from_cart",
+                    "product_id": product_id,
+                    "message": f"Removed item from your cart."
+                }
+            elif tool_name == "clear_cart":
+                result = {
+                    "success": True,
+                    "action": "clear_cart",
+                    "message": "Your cart has been cleared."
+                }
             else:
                 result = {"error": f"Unknown tool: {tool_name}"}
             
-            return json.dumps(result)
+            # Serialize result to handle datetime objects
+            serialized_result = serialize_for_json(result)
+            return json.dumps(serialized_result)
             
         except Exception as e:
             logger.error("Tool call failed", tool=tool_name, error=str(e))
@@ -463,6 +604,15 @@ class RealtimeSession:
                                 "tool": tool_name,
                                 "data": result_data
                             })
+                    
+                    # Send cart actions to frontend
+                    if tool_name in ["add_to_cart", "view_cart", "remove_from_cart", "clear_cart"]:
+                        print(f"[CART] Sending cart_action to frontend: {tool_name}, data: {result_data}")
+                        await self.websocket.send_json({
+                            "type": "cart_action",
+                            "action": result_data.get("action"),
+                            "data": result_data
+                        })
                     
                     # Send tool result back to GPT-4o
                     await self.openai_ws.send(json.dumps({

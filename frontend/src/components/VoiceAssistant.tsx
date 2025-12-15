@@ -61,6 +61,10 @@ export default function VoiceAssistant() {
     setConnected,
     addMessage,
     setProducts,
+    addToCart,
+    removeFromCart,
+    clearCart,
+    setCartOpen,
   } = useAppStore()
   
   // WebSocket and audio refs
@@ -85,38 +89,36 @@ export default function VoiceAssistant() {
     assistantTextRef.current = assistantText
   }, [assistantText])
 
-  // Fetch full product details from the API
+  // Fetch full product details from the API based on voice search results
   const fetchFullProducts = useCallback(async (partialProducts: Array<{ id: string; name: string }>) => {
     try {
-      // Get product IDs and fetch full details
-      const productIds = partialProducts.map(p => p.id)
-      console.log('🔍 Fetching full product details for:', productIds)
+      if (!partialProducts || partialProducts.length === 0) {
+        console.log('⚠️ No products to fetch')
+        return
+      }
+
+      console.log('🔍 Voice search returned:', partialProducts.map(p => p.name))
       
-      // Fetch products by searching for each (or use a batch endpoint if available)
-      const response = await fetch(`${BACKEND_URL}/api/v1/products/?limit=20`)
-      if (response.ok) {
-        const data = await response.json()
-        // Filter to only the products that match the IDs from the voice search
-        const matchedProducts = data.products?.filter((p: any) => 
-          productIds.includes(p.id)
-        ) || []
-        
-        if (matchedProducts.length > 0) {
-          setProducts(matchedProducts)
-          console.log('✅ Updated products in store:', matchedProducts.length)
-        } else {
-          // If no exact match, just use search with the first product name
-          const searchResponse = await fetch(
-            `${BACKEND_URL}/api/v1/products/search?query=${encodeURIComponent(partialProducts[0]?.name || '')}&limit=10`
-          )
-          if (searchResponse.ok) {
-            const searchData = await searchResponse.json()
-            if (searchData.products?.length > 0) {
-              setProducts(searchData.products)
-              console.log('✅ Updated products via search:', searchData.products.length)
-            }
-          }
+      // Search for each product by name to get full details
+      const searchPromises = partialProducts.slice(0, 5).map(async (p) => {
+        const searchResponse = await fetch(
+          `${BACKEND_URL}/api/v1/products/search?query=${encodeURIComponent(p.name)}&limit=1`
+        )
+        if (searchResponse.ok) {
+          const data = await searchResponse.json()
+          return data.products?.[0] || null
         }
+        return null
+      })
+      
+      const results = await Promise.all(searchPromises)
+      const validProducts = results.filter(p => p !== null)
+      
+      if (validProducts.length > 0) {
+        setProducts(validProducts)
+        console.log('✅ Updated products from voice search:', validProducts.length)
+      } else {
+        console.log('⚠️ No matching products found in database')
       }
     } catch (error) {
       console.error('Failed to fetch full products:', error)
@@ -252,6 +254,37 @@ export default function VoiceAssistant() {
         }
         break
 
+      case 'cart_action':
+        // Handle cart actions from voice assistant
+        console.log('🛒 Cart action:', data.action, data.data)
+        if (data.action === 'add_to_cart' && data.data?.product) {
+          const product = data.data.product
+          // Convert to frontend Product format and add to cart
+          addToCart({
+            id: product.id,
+            name: product.name,
+            description: product.description || '',
+            category: product.category || '',
+            subcategory: product.subcategory || '',
+            brand: product.brand || '',
+            sku: product.sku || '',
+            price: product.price,
+            sale_price: product.sale_price,
+            rating: product.rating || 0,
+            review_count: product.review_count || 0,
+            in_stock: product.in_stock !== false,
+            image_url: product.image_url || '',
+            featured: product.featured
+          }, data.data.quantity || 1)
+        } else if (data.action === 'view_cart') {
+          setCartOpen(true)
+        } else if (data.action === 'remove_from_cart' && data.data?.product_id) {
+          removeFromCart(data.data.product_id)
+        } else if (data.action === 'clear_cart') {
+          clearCart()
+        }
+        break
+
       case 'error':
         console.error('❌ Error:', data.message)
         break
@@ -259,7 +292,7 @@ export default function VoiceAssistant() {
       default:
         console.log('Unknown message type:', type)
     }
-  }, [addMessage, playAudio, setSpeaking, fetchFullProducts])
+  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen])
 
   // Start voice session
   const startSession = useCallback(async () => {
