@@ -3,14 +3,21 @@ import {
   Search24Regular,
   Image24Regular,
   Cart24Regular,
-  Person24Regular 
+  Box24Regular 
 } from '@fluentui/react-icons'
+import { useAppStore } from '../store/appStore'
 
 interface HeaderProps {
   onImageSearchClick: () => void
+  onCartClick: () => void
+  onOrdersClick: () => void
 }
 
-export default function Header({ onImageSearchClick }: HeaderProps) {
+export default function Header({ onImageSearchClick, onCartClick, onOrdersClick }: HeaderProps) {
+  const { cartItems, orders } = useAppStore()
+  
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm">
       {/* Logo */}
@@ -41,15 +48,28 @@ export default function Header({ onImageSearchClick }: HeaderProps) {
 
         <div className="w-px h-6 bg-slate-200 mx-2" />
 
-        <button className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600">
-          <Cart24Regular />
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
-            3
-          </span>
+        <button 
+          onClick={onOrdersClick}
+          className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-primary-600"
+        >
+          <Box24Regular />
+          {orders.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+              {orders.length > 9 ? '9+' : orders.length}
+            </span>
+          )}
         </button>
 
-        <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600">
-          <Person24Regular />
+        <button 
+          onClick={onCartClick}
+          className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-primary-600"
+        >
+          <Cart24Regular />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+              {cartItemCount > 9 ? '9+' : cartItemCount}
+            </span>
+          )}
         </button>
       </nav>
     </header>

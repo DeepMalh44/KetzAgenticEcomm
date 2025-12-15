@@ -163,7 +163,7 @@ async def update_order_status(
     status: str = Query(..., description="New order status")
 ):
     """Update order status."""
-    valid_statuses = ["confirmed", "processing", "shipped", "delivered", "cancelled"]
+    valid_statuses = ["confirmed", "processing", "shipped", "delivered", "cancelled", "return_requested", "returned"]
     if status not in valid_statuses:
         raise HTTPException(
             status_code=400,
@@ -183,6 +183,53 @@ async def update_order_status(
         raise
     except Exception as e:
         logger.error("Update status failed", error=str(e), order_id=order_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class UpdateOrderRequest(BaseModel):
+    """Update order request."""
+    status: Optional[str] = None
+    delivery_address: Optional[str] = None
+
+
+@router.patch("/{order_id}")
+async def patch_order(
+    request: Request,
+    order_id: str,
+    update_request: UpdateOrderRequest
+):
+    """Update order fields (PATCH)."""
+    valid_statuses = ["confirmed", "processing", "shipped", "delivered", "cancelled", "return_requested", "returned"]
+    
+    if update_request.status and update_request.status not in valid_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status. Must be one of: {valid_statuses}"
+        )
+    
+    try:
+        cosmos_service = request.app.state.cosmos
+        
+        updates = {}
+        if update_request.status:
+            updates["status"] = update_request.status
+        if update_request.delivery_address:
+            updates["delivery_address"] = update_request.delivery_address
+        
+        if not updates:
+            raise HTTPException(status_code=400, detail="No valid fields to update")
+        
+        updated = await cosmos_service.update_order(order_id, updates)
+        
+        if not updated:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        return {"order_id": order_id, "updated": True, **updates}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Patch order failed", error=str(e), order_id=order_id)
         raise HTTPException(status_code=500, detail=str(e))
 
 

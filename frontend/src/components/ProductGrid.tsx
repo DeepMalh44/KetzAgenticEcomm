@@ -1,5 +1,6 @@
-import { Star24Filled, Cart24Regular, Eye24Regular } from '@fluentui/react-icons'
+import { Star24Filled, Cart24Regular, Eye24Regular, Checkmark24Filled } from '@fluentui/react-icons'
 import { Product, useAppStore } from '../store/appStore'
+import { useState } from 'react'
 
 interface ProductGridProps {
   products: Product[]
@@ -7,7 +8,20 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products, isLoading }: ProductGridProps) {
-  const { setSelectedProduct } = useAppStore()
+  const { setSelectedProduct, addToCart, cartItems } = useAppStore()
+  const [addedProductId, setAddedProductId] = useState<string | null>(null)
+
+  const handleAddToCart = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation()
+    addToCart(product, 1)
+    setAddedProductId(product.id)
+    // Reset the animation after 1.5 seconds
+    setTimeout(() => setAddedProductId(null), 1500)
+  }
+
+  const isInCart = (productId: string) => {
+    return cartItems.some(item => item.product.id === productId)
+  }
 
   if (isLoading) {
     return (
@@ -107,13 +121,21 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
               </div>
               
               <button 
-                className="p-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  // Add to cart logic
-                }}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  addedProductId === product.id
+                    ? 'bg-green-500 scale-110'
+                    : isInCart(product.id)
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'bg-primary-500 hover:bg-primary-600'
+                } text-white`}
+                onClick={(e) => handleAddToCart(e, product)}
+                disabled={!product.in_stock}
               >
-                <Cart24Regular className="w-5 h-5" />
+                {addedProductId === product.id ? (
+                  <Checkmark24Filled className="w-5 h-5" />
+                ) : (
+                  <Cart24Regular className="w-5 h-5" />
+                )}
               </button>
             </div>
 

@@ -5,13 +5,26 @@ import VoiceAssistant from './components/VoiceAssistant'
 import ProductGrid from './components/ProductGrid'
 import ImageSearch from './components/ImageSearch'
 import ChatPanel from './components/ChatPanel'
+import CartPanel from './components/CartPanel'
+import OrdersPanel from './components/OrdersPanel'
 import { useAppStore } from './store/appStore'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 function App() {
   const [showImageSearch, setShowImageSearch] = useState(false)
-  const { products, isLoading, searchQuery, setSearchQuery, setProducts, setLoading } = useAppStore()
+  const { 
+    products, 
+    isLoading, 
+    searchQuery, 
+    setSearchQuery, 
+    setProducts, 
+    setLoading,
+    isCartOpen,
+    setCartOpen,
+    isOrdersOpen,
+    setOrdersOpen
+  } = useAppStore()
 
   // Fetch products - either search or get all
   const fetchProducts = useCallback(async (query?: string) => {
@@ -55,7 +68,11 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Header */}
-        <Header onImageSearchClick={() => setShowImageSearch(true)} />
+        <Header 
+          onImageSearchClick={() => setShowImageSearch(true)} 
+          onCartClick={() => setCartOpen(true)}
+          onOrdersClick={() => setOrdersOpen(true)}
+        />
 
         {/* Main Content */}
         <div className="flex h-[calc(100vh-64px)]">
@@ -118,6 +135,16 @@ function App() {
         {/* Image Search Modal */}
         {showImageSearch && (
           <ImageSearch onClose={() => setShowImageSearch(false)} />
+        )}
+
+        {/* Cart Panel Modal */}
+        {isCartOpen && (
+          <CartPanel onClose={() => setCartOpen(false)} />
+        )}
+
+        {/* Orders Panel Modal */}
+        {isOrdersOpen && (
+          <OrdersPanel onClose={() => setOrdersOpen(false)} />
         )}
       </div>
     </Router>
