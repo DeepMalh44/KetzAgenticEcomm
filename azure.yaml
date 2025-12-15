@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+# ============================================================================
+# KetzAgenticEcomm - Azure Configuration
+# ============================================================================
+# For deployment, use the PowerShell script:
+#   .\scripts\deploy.ps1
+#
+# Options:
+#   -SkipInfra    Skip Terraform (use existing infra)
+#   -SkipBuild    Skip Docker build/push
+#   -SkipDeploy   Skip Container App update
+# ============================================================================
+
+name: ketzagenticecomm
+metadata:
+  template: ketzagenticecomm@0.0.1
+
+services:
+  backend:
+    project: ./backend
+    language: python
+    host: containerapp
+
+  frontend:
+    project: ./frontend
+    language: js
+    host: containerapp
+
+infra:
+  provider: terraform
+  path: infra/terraform

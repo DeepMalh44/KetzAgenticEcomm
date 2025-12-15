@@ -1,0 +1,57 @@
+import { 
+  Home24Regular, 
+  Search24Regular,
+  Image24Regular,
+  Cart24Regular,
+  Person24Regular 
+} from '@fluentui/react-icons'
+
+interface HeaderProps {
+  onImageSearchClick: () => void
+}
+
+export default function Header({ onImageSearchClick }: HeaderProps) {
+  return (
+    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm">
+      {/* Logo */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
+          <Home24Regular className="text-white" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-slate-800">KetzAgenticEcomm</h1>
+          <p className="text-xs text-slate-500">Home Improvement Voice Assistant</p>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex items-center gap-2">
+        <button
+          onClick={onImageSearchClick}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-primary-600"
+        >
+          <Image24Regular />
+          <span className="text-sm font-medium">Image Search</span>
+        </button>
+        
+        <button className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 hover:text-primary-600">
+          <Search24Regular />
+          <span className="text-sm font-medium">Browse</span>
+        </button>
+
+        <div className="w-px h-6 bg-slate-200 mx-2" />
+
+        <button className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600">
+          <Cart24Regular />
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+            3
+          </span>
+        </button>
+
+        <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600">
+          <Person24Regular />
+        </button>
+      </nav>
+    </header>
+  )
+}
