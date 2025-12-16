@@ -19,6 +19,13 @@ class CosmosDBService:
     
     def __init__(self, connection_string: str, database_name: str):
         """Initialize the Cosmos DB service."""
+        # Disable retryable writes for Azure Cosmos DB MongoDB API
+        if "retrywrites" not in connection_string.lower():
+            if "?" in connection_string:
+                connection_string += "&retrywrites=false"
+            else:
+                connection_string += "?retrywrites=false"
+        
         self.client = AsyncIOMotorClient(connection_string)
         self.db = self.client[database_name]
         
@@ -197,13 +204,15 @@ class CosmosDBService:
         if status:
             filter_query["status"] = status
         
-        cursor = self.orders.find(filter_query).sort(
-            "created_at", -1
-        ).limit(limit)
+        # Note: Cosmos DB MongoDB API may not support sorting without index
+        # Using simple find without sort for compatibility
+        cursor = self.orders.find(filter_query).limit(limit)
         
         orders = await cursor.to_list(length=limit)
         for o in orders:
             o["_id"] = str(o["_id"])
+        # Sort in memory by created_at descending
+        orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         return orders
     
     async def update_order_status(self, order_id: str, status: str) -> bool:
