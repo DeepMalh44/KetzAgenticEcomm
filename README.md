@@ -14,8 +14,8 @@
 
 ### 🖼️ Visual Search
 - **Image Upload** - Find products by uploading photos
-- **Azure AI Vision** - Florence model for image embeddings
-- **Similarity Search** - "Find products like this image"
+- **GPT-4o Vision** - AI-powered image analysis for product identification
+- **Semantic Search** - "Find products like this image"
 - **Combined Search** - Voice + image for precise results
 
 ### 🤖 Multi-Agent System
@@ -44,7 +44,7 @@
                     ▼                               ▼
         ┌───────────────────┐           ┌───────────────────┐
         │  Azure Comm Svc   │           │   Web Frontend    │
-        │  (Phone/PSTN)     │           │   (React + WS)    │
+        │  (Phone/PSTN)     │           │   (React + Vite)  │
         └───────────────────┘           └───────────────────┘
                     │                               │
                     └───────────────┬───────────────┘
@@ -53,9 +53,12 @@
 │                        FastAPI Backend                                   │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │                    GPT-4o Realtime API                           │   │
-│  │  • Native voice-to-voice                                         │   │
-│  │  • Built-in barge-in                                             │   │
-│  │  • Function calling for tools                                    │   │
+│  │  • Native voice-to-voice    • Built-in barge-in                 │   │
+│  │  • Function calling         • WebSocket streaming               │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    GPT-4o Vision                                 │   │
+│  │  • Image analysis           • Product identification            │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                                    │                                     │
 │  ┌─────────────────────────────────┴─────────────────────────────┐     │
@@ -72,19 +75,10 @@
 ┌───────────────┐         ┌───────────────┐         ┌───────────────┐
 │  Azure AI     │         │   Cosmos DB   │         │ Blob Storage  │
 │  Search       │         │  (MongoDB)    │         │  (Images)     │
-│  • Text       │         │  • Products   │         │  • Product    │
-│  • Vectors    │         │  • Orders     │         │    photos     │
-│  • Images     │         │  • Sessions   │         │  • Uploads    │
+│  • Semantic   │         │  • Orders     │         │  • Product    │
+│  • Full-text  │         │  • Carts      │         │    photos     │
+│  • Filters    │         │  • Returns    │         │  • Uploads    │
 └───────────────┘         └───────────────┘         └───────────────┘
-        ▲
-        │
-┌───────────────┐
-│ Azure AI      │
-│ Vision        │
-│ (Florence)    │
-│ • Image       │
-│   embeddings  │
-└───────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -136,9 +130,8 @@ terraform apply
 **Infrastructure Created by Terraform:**
 - Virtual Network with Container Apps and Private Endpoint subnets
 - Cosmos DB (MongoDB API) with private endpoint
-- Azure AI Search
-- Azure OpenAI (GPT-4o + text-embedding-3-large)
-- Azure AI Vision (Florence model)
+- Azure AI Search (Standard tier with semantic search)
+- Azure OpenAI (GPT-4o + GPT-4o Realtime + text-embedding-3-large)
 - Container Apps Environment with VNet integration
 - Backend & Frontend Container Apps
 - Blob Storage for product images
@@ -216,18 +209,186 @@ KetzAgenticEcomm/
 └── README.md
 ```
 
+## � Component Deep Dive
+
+### Azure Services
+
+#### 1. Azure OpenAI Service
+| Deployment | Purpose |
+|------------|---------|
+| `gpt-4o-realtime-preview` | **Voice conversations** - Powers real-time voice assistant with WebSocket streaming |
+| `gpt-4o` | **Image analysis** - Analyzes uploaded images to generate product descriptions for search |
+| `text-embedding-3-large` | **Text embeddings** - Generates semantic embeddings for product search |
+
+**Flow:** User speaks → Audio streams to GPT-4o Realtime → AI responds with voice + triggers tools
+
+#### 2. Azure AI Search
+| Feature | Usage |
+|---------|-------|
+| **Semantic Search** | Understands intent - "something to cut wood" finds saws |
+| **Full-text Search** | Keyword matching on product names/descriptions |
+| **Filters & Facets** | Filter by category, brand, price range |
+| **Vector Search** | Index has vector fields for future image/text embeddings |
+
+**Index:** `products` with 100 home improvement products (tools, plumbing, electrical, etc.)
+
+#### 3. Azure Cosmos DB
+| Collection | Data Stored |
+|------------|-------------|
+| `orders` | Customer orders with items, totals, status |
+| `carts` | Shopping cart state per session |
+| `returns` | Return requests and refund status |
+
+**API:** MongoDB-compatible for easy querying
+
+#### 4. Azure Blob Storage
+| Container | Contents |
+|-----------|----------|
+| `product-images` | Product images (served via proxy) |
+| `uploads` | User-uploaded images for search |
+
+#### 5. Azure Container Apps
+| App | Image | Purpose |
+|-----|-------|---------|
+| `backend-vnet` | `backend:v16-cleanup` | FastAPI backend with all APIs |
+| `frontend-vnet` | `frontend:v5-fix` | React/Vite frontend UI |
+
+---
+
+### Backend Components
+
+#### API Endpoints (`/api/v1/`)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/realtime/session` | GET | Start voice session |
+| `/realtime/ws` | WebSocket | Voice assistant connection |
+| `/products/` | GET | List/search products |
+| `/products/{id}` | GET | Get product details |
+| `/products/categories` | GET | Get category list |
+| `/images/search` | POST | Upload image → find similar products |
+| `/orders/` | POST | Create order |
+| `/orders/{id}` | GET | Get order status |
+| `/img/proxy` | GET | Proxy external images (CORS fix) |
+
+#### Services (`/services/`)
+
+| Service | File | Purpose |
+|---------|------|---------|
+| `AISearchService` | `ai_search.py` | Search products, semantic queries, vector search |
+| `CosmosDBService` | `cosmos_db.py` | CRUD operations for orders, carts, returns |
+| `BlobStorageService` | `blob_storage.py` | Upload/download images |
+
+#### Agents (`/agents/`)
+
+| Agent | Purpose |
+|-------|---------|
+| `ShoppingConcierge` | Main orchestrator - routes user requests to appropriate agents |
+| `OrdersAgent` | Handles order creation, status checks, cancellations |
+| `ReturnsAgent` | Processes return requests, refund status |
+| `ImageSearchAgent` | Analyzes images and finds similar products using GPT-4o Vision |
+
+#### Tools (`/tools/`)
+Functions that the AI can call during voice conversations:
+
+| Tool | Function |
+|------|----------|
+| `search_products` | Search catalog by query, filters |
+| `get_product_details` | Get full product info |
+| `add_to_cart` | Add item to shopping cart |
+| `view_cart` | Show current cart contents |
+| `checkout` | Place order from cart |
+| `track_order` | Get order status |
+| `search_by_image` | Find products from uploaded image |
+
+---
+
+### Frontend Components
+
+#### Pages & Components
+
+| Component | Purpose |
+|-----------|---------|
+| `App.tsx` | Main app with routing |
+| `VoiceAssistant.tsx` | 🎤 Microphone button, WebSocket to backend |
+| `ProductGrid.tsx` | Display product cards in grid |
+| `ProductDetail.tsx` | Full product page with add-to-cart |
+| `SearchBar.tsx` | Text search + image upload button |
+| `ImageSearch.tsx` | Camera icon, file upload, preview |
+| `Cart.tsx` | Shopping cart sidebar |
+| `OrderHistory.tsx` | Past orders list |
+
+#### State Management
+`appStore.ts` (Zustand) manages:
+- Products list & search results
+- Cart items & totals
+- Selected product details
+- Voice assistant state
+- User session
+
+---
+
+### Data Flow Examples
+
+#### 🎤 Voice Search
+```
+User speaks "Show me cordless drills"
+    ↓
+Browser captures audio → WebSocket → Backend
+    ↓
+GPT-4o Realtime transcribes + understands intent
+    ↓
+AI calls search_products(query="cordless drills")
+    ↓
+Azure AI Search returns products (semantic search)
+    ↓
+AI speaks response + sends product data
+    ↓
+Frontend displays products in grid
+```
+
+#### 📷 Image Search
+```
+User uploads drill image
+    ↓
+POST /api/v1/images/search (multipart form)
+    ↓
+GPT-4o Vision analyzes: "Yellow cordless power drill with battery pack"
+    ↓
+Semantic search with generated description
+    ↓
+Azure AI Search returns similar products
+    ↓
+Frontend displays matching products
+```
+
+#### 🛒 Add to Cart (Voice)
+```
+User: "Add the DeWalt drill to my cart"
+    ↓
+GPT-4o Realtime understands intent
+    ↓
+AI calls add_to_cart(product_id="...", quantity=1)
+    ↓
+Cart updated in Cosmos DB
+    ↓
+AI: "I've added the DeWalt 20V MAX drill to your cart"
+    ↓
+Frontend cart updates via WebSocket event
+```
+
 ## 🛠️ Technology Stack
 
 | Layer | Technology |
 |-------|------------|
 | **Voice AI** | GPT-4o Realtime API |
+| **Image AI** | GPT-4o Vision |
 | **Telephony** | Azure Communication Services |
-| **Image AI** | Azure AI Vision (Florence) |
-| **Search** | Azure AI Search (vector + text) |
+| **Search** | Azure AI Search (semantic + full-text) |
 | **Database** | Azure Cosmos DB (MongoDB API) |
 | **Storage** | Azure Blob Storage |
 | **Backend** | FastAPI (Python 3.11) |
-| **Frontend** | React 18 + Vite |
+| **Frontend** | React 18 + Vite + TypeScript |
 | **Hosting** | Azure Container Apps |
 | **IaC** | Terraform |
 
@@ -262,14 +423,14 @@ sequenceDiagram
     participant C as Customer
     participant W as Web Frontend
     participant B as Backend
-    participant V as AI Vision
+    participant G as GPT-4o Vision
     participant S as AI Search
     
     C->>W: Upload image of faucet
     W->>B: POST /api/v1/images/search
-    B->>V: Generate embedding
-    V-->>B: 1024-dim vector
-    B->>S: Vector similarity search
+    B->>G: Analyze image & describe
+    G-->>B: Product description
+    B->>S: Semantic search with description
     S-->>B: Similar products
     B-->>W: Product results
     W-->>C: "Found similar products..."
@@ -289,10 +450,6 @@ AZURE_OPENAI_REALTIME_DEPLOYMENT=gpt-4o-realtime-preview
 AZURE_SEARCH_ENDPOINT=https://xxx.search.windows.net
 AZURE_SEARCH_KEY=xxx
 AZURE_SEARCH_INDEX=products
-
-# Azure AI Vision
-AZURE_VISION_ENDPOINT=https://xxx.cognitiveservices.azure.com/
-AZURE_VISION_KEY=xxx
 
 # Azure Cosmos DB
 AZURE_COSMOS_CONNECTION_STRING=mongodb+srv://xxx
