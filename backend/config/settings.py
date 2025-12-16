@@ -30,10 +30,6 @@ class Settings(BaseSettings):
     azure_openai_deployment: str = "gpt-4o"
     azure_openai_embedding_deployment: str = "text-embedding-3-large"
     
-    # Azure AI Vision Configuration
-    azure_vision_endpoint: str = ""
-    azure_vision_key: str = ""  # Optional - not needed with managed identity
-    
     # Azure AI Search Configuration
     azure_search_endpoint: str = ""
     azure_search_key: str = ""  # Optional - not needed with managed identity

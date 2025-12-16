@@ -2,54 +2,112 @@
 Image Search Agent
 ===================
 
-Handles visual similarity search using Azure AI Vision embeddings.
+Handles visual similarity search using GPT-4o Vision and semantic search.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 import structlog
+import base64
+import httpx
+from azure.identity import DefaultAzureCredential
 
 logger = structlog.get_logger(__name__)
 
 
 class ImageSearchAgent:
-    """Agent for image-based product search."""
+    """Agent for image-based product search using GPT-4o Vision."""
     
-    def __init__(self, app_state):
+    def __init__(self, app_state, openai_endpoint: str = None):
         """Initialize the image search agent."""
         self.search = app_state.search
-        self.vision = app_state.vision
         self.blob = app_state.blob
-        logger.info("ImageSearchAgent initialized")
+        self.openai_endpoint = openai_endpoint
+        logger.info("ImageSearchAgent initialized with GPT-4o Vision")
     
-    async def search_similar(
+    async def analyze_image(self, image_data: bytes) -> str:
+        """
+        Use GPT-4o Vision to analyze the image and generate a product description.
+        """
+        if not self.openai_endpoint:
+            raise ValueError("OpenAI endpoint not configured")
+            
+        # Encode image as base64
+        image_base64 = base64.b64encode(image_data).decode("utf-8")
+        
+        # Get Azure AD token
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://cognitiveservices.azure.com/.default")
+        
+        headers = {
+            "Authorization": f"Bearer {token.token}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "messages": [
+                {
+                    "role": "system",
+                    "content": """You are a product identification expert for a home improvement store. 
+                    Analyze the image and describe the product in detail for search purposes.
+                    Focus on: product type, category, style, color, material, brand (if visible).
+                    Be concise but descriptive.
+                    Just provide the description, no explanations."""
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Describe this product:"},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                    ]
+                }
+            ],
+            "max_tokens": 200
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            url = f"{self.openai_endpoint}/openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview"
+            response = await client.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            
+            result = response.json()
+            description = result["choices"][0]["message"]["content"].strip().strip('"').strip("'")
+            logger.info("Image analyzed", description=description[:100])
+            return description
+    
+    async def search_by_image(
         self,
-        image_id: str,
+        image_data: bytes,
         limit: int = 5,
         category: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Search for products visually similar to an uploaded image.
+        Search for products similar to an uploaded image.
         
         Args:
-            image_id: ID of a previously uploaded image
+            image_data: Raw image bytes
             limit: Maximum number of results
             category: Optional category filter
         """
-        logger.info("Searching similar products", image_id=image_id, limit=limit)
+        logger.info("Searching by image", limit=limit, category=category)
         
         try:
-            # Search using stored embedding
-            results = await self.search.search_by_image_embedding(
-                image_id=image_id,
+            # Step 1: Analyze image with GPT-4o Vision
+            image_description = await self.analyze_image(image_data)
+            
+            # Step 2: Semantic search with the description
+            results = await self.search.search_products(
+                query=image_description,
+                category=category,
                 limit=limit,
-                category=category
+                use_semantic=True
             )
             
             if not results:
                 return {
                     "found": 0,
                     "products": [],
-                    "summary": "I couldn't find any products similar to that image. Try uploading a clearer image or describing what you're looking for."
+                    "image_description": image_description,
+                    "summary": "I couldn't find any products matching that image. Try a different image or describe what you're looking for."
                 }
             
             # Format results
@@ -59,7 +117,14 @@ class ImageSearchAgent:
                     "name": r["name"],
                     "description": r.get("description", ""),
                     "category": r.get("category", ""),
+                    "subcategory": r.get("subcategory", ""),
+                    "brand": r.get("brand", ""),
+                    "sku": r.get("sku", ""),
                     "price": r.get("price", 0),
+                    "sale_price": r.get("sale_price"),
+                    "rating": r.get("rating", 0),
+                    "review_count": r.get("review_count", 0),
+                    "in_stock": r.get("in_stock", True),
                     "image_url": r.get("image_url"),
                     "similarity_score": r.get("@search.score", 0)
                 }
@@ -68,223 +133,81 @@ class ImageSearchAgent:
             
             # Create summary
             top_match = products[0]
-            summary = f"I found {len(products)} products similar to your image. "
-            summary += f"The best match is {top_match['name']} "
-            summary += f"at ${top_match['price']:.2f}. "
-            
-            if len(products) > 1:
-                other_names = [p["name"] for p in products[1:3]]
-                summary += f"Other similar items include: {', '.join(other_names)}."
+            summary = f"I found {len(products)} products matching your image. The best match is {top_match['name']} at ${top_match['price']:.2f}."
             
             return {
                 "found": len(products),
-                "image_id": image_id,
                 "products": products,
+                "image_description": image_description,
                 "summary": summary
             }
             
         except Exception as e:
-            logger.error("Image search failed", error=str(e), image_id=image_id)
+            logger.error("Image search failed", error=str(e))
             return {
+                "found": 0,
+                "products": [],
                 "error": str(e),
-                "summary": "I had trouble searching for similar products. Please try again."
+                "summary": f"Sorry, I encountered an error while searching: {str(e)}"
             }
     
-    async def search_by_text_for_image(
+    async def find_similar_products(
         self,
-        query: str,
-        limit: int = 5,
-        category: Optional[str] = None
+        product_id: str,
+        limit: int = 5
     ) -> Dict[str, Any]:
         """
-        Search for products using text-to-image matching.
+        Find products similar to an existing product.
         
-        Uses Vision API's text embedding to find visually similar products.
+        Args:
+            product_id: ID of the source product
+            limit: Maximum number of results
         """
-        logger.info("Searching by text for images", query=query)
+        logger.info("Finding similar products", product_id=product_id)
         
         try:
-            # Get text embedding from Vision API
-            text_embedding = await self.vision.get_text_embedding(query)
-            
-            # Search using the embedding against image_embedding field
-            results = await self.search.search_by_vector(
-                embedding=text_embedding,
-                limit=limit,
-                category=category,
-                field_name="image_embedding"
-            )
-            
-            if not results:
+            # Get source product
+            source = await self.search.get_document(product_id)
+            if not source:
                 return {
                     "found": 0,
                     "products": [],
-                    "summary": f"I couldn't find products visually matching '{query}'. Try a different description."
+                    "error": f"Product {product_id} not found"
                 }
             
+            # Search using product description
+            query = f"{source.get('name', '')} {source.get('description', '')}"
+            results = await self.search.search_products(
+                query=query,
+                category=source.get('category'),
+                limit=limit + 1,
+                use_semantic=True
+            )
+            
+            # Filter out source product
             products = [
                 {
                     "id": r["id"],
                     "name": r["name"],
-                    "description": r.get("description", ""),
                     "price": r.get("price", 0),
-                    "image_url": r.get("image_url"),
-                    "similarity_score": r.get("@search.score", 0)
-                }
-                for r in results
-            ]
-            
-            summary = f"I found {len(products)} products that visually match '{query}'. "
-            summary += f"Top result: {products[0]['name']} at ${products[0]['price']:.2f}."
-            
-            return {
-                "found": len(products),
-                "query": query,
-                "products": products,
-                "summary": summary
-            }
-            
-        except Exception as e:
-            logger.error("Text-to-image search failed", error=str(e))
-            return {
-                "error": str(e),
-                "summary": "I had trouble with the visual search. Please try again."
-            }
-    
-    async def analyze_uploaded_image(
-        self,
-        image_id: str
-    ) -> Dict[str, Any]:
-        """
-        Analyze an uploaded image to describe what's in it.
-        
-        Useful for helping users understand what they've uploaded.
-        """
-        logger.info("Analyzing uploaded image", image_id=image_id)
-        
-        try:
-            # Download image from blob storage
-            blob_name = f"uploads/{image_id}"
-            
-            # Try different extensions
-            image_data = None
-            for ext in [".jpg", ".jpeg", ".png", ".webp"]:
-                image_data = await self.blob.download_image(blob_name + ext)
-                if image_data:
-                    break
-            
-            if not image_data:
-                return {
-                    "success": False,
-                    "summary": "I couldn't find the uploaded image. Please upload it again."
-                }
-            
-            # Analyze with Vision API
-            analysis = await self.vision.analyze_image(image_data)
-            
-            # Create summary
-            caption = analysis.get("caption", "an image")
-            tags = [t["name"] for t in analysis.get("tags", [])[:5]]
-            
-            summary = f"I see {caption}. "
-            if tags:
-                summary += f"Key features: {', '.join(tags)}. "
-            summary += "Would you like me to find similar products?"
-            
-            return {
-                "success": True,
-                "image_id": image_id,
-                "caption": caption,
-                "confidence": analysis.get("confidence", 0),
-                "tags": analysis.get("tags", []),
-                "objects": analysis.get("objects", []),
-                "summary": summary
-            }
-            
-        except Exception as e:
-            logger.error("Image analysis failed", error=str(e))
-            return {
-                "success": False,
-                "error": str(e),
-                "summary": "I had trouble analyzing that image. Please try again."
-            }
-    
-    async def find_products_from_photo(
-        self,
-        image_data: bytes,
-        limit: int = 5,
-        category: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """
-        Direct image search - takes raw image data and finds similar products.
-        
-        Combines image analysis and search in one step.
-        """
-        logger.info("Finding products from photo")
-        
-        try:
-            # Get image embedding
-            embedding = await self.vision.get_image_embedding(image_data)
-            
-            # Search for similar products
-            results = await self.search.search_by_vector(
-                embedding=embedding,
-                limit=limit,
-                category=category,
-                field_name="image_embedding"
-            )
-            
-            # Also analyze the image for context
-            try:
-                analysis = await self.vision.analyze_image(image_data)
-                caption = analysis.get("caption", "")
-                tags = [t["name"] for t in analysis.get("tags", [])[:3]]
-            except:
-                caption = ""
-                tags = []
-            
-            if not results:
-                summary = "I couldn't find products matching that image. "
-                if caption:
-                    summary += f"I see {caption}. "
-                summary += "Try describing what you're looking for instead."
-                
-                return {
-                    "found": 0,
-                    "products": [],
-                    "analysis": {"caption": caption, "tags": tags},
-                    "summary": summary
-                }
-            
-            products = [
-                {
-                    "id": r["id"],
-                    "name": r["name"],
-                    "description": r.get("description", ""),
                     "category": r.get("category", ""),
-                    "price": r.get("price", 0),
                     "image_url": r.get("image_url"),
                     "similarity_score": r.get("@search.score", 0)
                 }
-                for r in results
-            ]
-            
-            summary = ""
-            if caption:
-                summary = f"I see {caption}. "
-            summary += f"Here are {len(products)} matching products. "
-            summary += f"Best match: {products[0]['name']} at ${products[0]['price']:.2f}."
+                for r in results if r["id"] != product_id
+            ][:limit]
             
             return {
+                "source_product": source.get("name"),
                 "found": len(products),
                 "products": products,
-                "analysis": {"caption": caption, "tags": tags},
-                "summary": summary
+                "summary": f"Found {len(products)} products similar to {source.get('name')}."
             }
             
         except Exception as e:
-            logger.error("Find products from photo failed", error=str(e))
+            logger.error("Similar product search failed", error=str(e))
             return {
-                "error": str(e),
-                "summary": "I had trouble processing that image. Please try again or describe what you're looking for."
+                "found": 0,
+                "products": [],
+                "error": str(e)
             }

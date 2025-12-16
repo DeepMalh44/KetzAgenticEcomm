@@ -8,6 +8,8 @@ Supports both API key and managed identity authentication.
 """
 
 from typing import Optional, List, Dict, Any
+import base64
+import httpx
 import structlog
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
@@ -51,8 +53,10 @@ class AISearchService:
             index_name: Name of the search index
             use_managed_identity: Use DefaultAzureCredential instead of API key
         """
-        self.endpoint = endpoint
+        self.endpoint = endpoint.rstrip("/")
         self.index_name = index_name
+        self.key = key
+        self.use_managed_identity = use_managed_identity
         
         # Choose credential type
         if use_managed_identity or not key:
@@ -65,6 +69,9 @@ class AISearchService:
         # Initialize clients
         self.index_client = SearchIndexClient(endpoint, self.credential)
         self.search_client = SearchClient(endpoint, index_name, self.credential)
+        
+        # HTTP client for REST API calls (for multimodal search)
+        self.http_client = httpx.AsyncClient(timeout=30.0)
         
         # Store for query embeddings (in production, use Redis or similar)
         self._query_embeddings: Dict[str, List[float]] = {}
@@ -241,6 +248,84 @@ class AISearchService:
         logger.info("Vector search completed", results=len(products))
         return products
     
+    async def search_by_image_multimodal(
+        self,
+        image_data: bytes,
+        limit: int = 5,
+        category: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for products using AI Search multimodal capabilities.
+        
+        Uses VectorizableImageBinaryQuery to send raw image bytes to AI Search,
+        which uses the integrated AI Vision vectorizer to convert the image
+        to a vector and perform similarity search.
+        """
+        # Encode image as base64
+        image_base64 = base64.b64encode(image_data).decode("utf-8")
+        
+        # Build filter
+        filter_str = f"category eq '{category}'" if category else None
+        
+        # Build the search request with vectorizable image query
+        search_body = {
+            "search": "*",
+            "vectorQueries": [
+                {
+                    "kind": "imageBinary",
+                    "base64Image": image_base64,
+                    "fields": "image_embedding",
+                    "k": limit
+                }
+            ],
+            "select": "id,name,description,category,subcategory,brand,price,sale_price,rating,review_count,in_stock,image_url",
+            "top": limit
+        }
+        
+        if filter_str:
+            search_body["filter"] = filter_str
+        
+        # Get auth headers
+        headers = {"Content-Type": "application/json"}
+        if self.use_managed_identity:
+            token = self.credential.get_token("https://search.azure.com/.default")
+            headers["Authorization"] = f"Bearer {token.token}"
+        else:
+            headers["api-key"] = self.key
+        
+        try:
+            # Use preview API version for multimodal support
+            url = f"{self.endpoint}/indexes/{self.index_name}/docs/search?api-version=2024-05-01-preview"
+            
+            response = await self.http_client.post(
+                url,
+                headers=headers,
+                json=search_body
+            )
+            
+            # Log response for debugging
+            if response.status_code != 200:
+                logger.error("AI Search error response", 
+                           status=response.status_code, 
+                           body=response.text)
+            
+            response.raise_for_status()
+            
+            result = response.json()
+            products = []
+            
+            for doc in result.get("value", []):
+                product = {k: v for k, v in doc.items() if not k.startswith("@")}
+                product["@search.score"] = doc.get("@search.score", 0)
+                products.append(product)
+            
+            logger.info("Multimodal image search completed", results=len(products))
+            return products
+            
+        except Exception as e:
+            logger.error("Multimodal image search failed", error=str(e))
+            raise
+
     async def search_by_image_embedding(
         self,
         image_id: str,

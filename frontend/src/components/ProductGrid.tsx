@@ -100,10 +100,10 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
             <div className="flex items-center gap-1 mb-3">
               <Star24Filled className="w-4 h-4 text-amber-400" />
               <span className="text-sm font-medium text-slate-700">
-                {product.rating.toFixed(1)}
+                {(product.rating ?? 0).toFixed(1)}
               </span>
               <span className="text-xs text-slate-400">
-                ({product.review_count} reviews)
+                ({product.review_count ?? 0} reviews)
               </span>
             </div>
 
@@ -111,11 +111,11 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold text-slate-800">
-                  ${(product.sale_price || product.price).toFixed(2)}
+                  ${((product.sale_price || product.price) ?? 0).toFixed(2)}
                 </span>
                 {product.sale_price && (
                   <span className="text-sm text-slate-400 line-through">
-                    ${product.price.toFixed(2)}
+                    ${(product.price ?? 0).toFixed(2)}
                   </span>
                 )}
               </div>
@@ -129,7 +129,7 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
                     : 'bg-primary-500 hover:bg-primary-600'
                 } text-white`}
                 onClick={(e) => handleAddToCart(e, product)}
-                disabled={!product.in_stock}
+                disabled={product.in_stock === false}
               >
                 {addedProductId === product.id ? (
                   <Checkmark24Filled className="w-5 h-5" />
@@ -141,7 +141,7 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
 
             {/* Stock Status */}
             <div className="mt-3">
-              {product.in_stock ? (
+              {product.in_stock !== false ? (
                 <span className="text-xs text-green-600 font-medium">✓ In Stock</span>
               ) : (
                 <span className="text-xs text-red-600 font-medium">Out of Stock</span>

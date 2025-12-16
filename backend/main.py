@@ -21,7 +21,6 @@ from config import settings
 from services.cosmos_db import CosmosDBService
 from services.ai_search import AISearchService
 from services.blob_storage import BlobStorageService
-from services.vision_embeddings import VisionEmbeddingService
 from api.v1.endpoints import realtime, products, orders, images, images_proxy
 
 
@@ -88,15 +87,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         app.state.blob = blob_service
         app.state.blob_service = blob_service  # Also store as blob_service for image proxy
         logger.info("Blob Storage initialized")
-        
-        # Vision Embeddings - supports managed identity
-        vision_service = VisionEmbeddingService(
-            endpoint=settings.azure_vision_endpoint,
-            key=settings.azure_vision_key if not use_mi else None,
-            use_managed_identity=use_mi
-        )
-        app.state.vision = vision_service
-        logger.info("Vision Embedding Service initialized")
         
         logger.info("All services initialized successfully")
         
