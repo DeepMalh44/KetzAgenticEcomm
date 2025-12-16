@@ -81,8 +81,10 @@ class OrdersAgent:
             tax = round(subtotal * tax_rate, 2)
             total = round(subtotal + tax, 2)
             
+            # Generate 4-digit order ID
+            order_id = await self.cosmos.generate_order_id()
+            
             # Create order
-            order_id = str(uuid.uuid4())[:8].upper()
             order = {
                 "id": order_id,
                 "customer_id": customer_id,

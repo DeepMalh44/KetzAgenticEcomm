@@ -176,6 +176,26 @@ class CosmosDBService:
     # Order Operations
     # ===================
     
+    async def generate_order_id(self) -> str:
+        """Generate a unique 4-digit order ID."""
+        import random
+        for _ in range(100):  # Try up to 100 times
+            order_id = str(random.randint(1000, 9999))
+            existing = await self.orders.find_one({"id": order_id})
+            if not existing:
+                return order_id
+        # Fallback to 5 digits if 4-digit space is full
+        return str(random.randint(10000, 99999))
+    
+    async def get_orders_by_customer(self, customer_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get all orders for a specific customer."""
+        cursor = self.orders.find({"customer_id": customer_id}).limit(limit)
+        orders = await cursor.to_list(length=limit)
+        for o in orders:
+            o["_id"] = str(o["_id"])
+        orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return orders
+    
     async def create_order(self, order: Dict[str, Any]) -> str:
         """Create a new order."""
         order["created_at"] = datetime.utcnow()

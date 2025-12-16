@@ -10,7 +10,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 import structlog
-import uuid
+import random
 
 logger = structlog.get_logger(__name__)
 
@@ -83,9 +83,12 @@ async def create_order(request: Request, order_request: CreateOrderRequest):
         tax = round(subtotal * 0.0825, 2)
         total = round(subtotal + tax, 2)
         
+        # Generate 4-digit order ID
+        order_id = await cosmos_service.generate_order_id()
+        
         # Create order
         order = {
-            "id": str(uuid.uuid4()),
+            "id": order_id,
             "customer_id": order_request.customer_id,
             "items": [item.model_dump() for item in order_items],
             "subtotal": subtotal,
@@ -127,6 +130,28 @@ async def get_order(request: Request, order_id: str):
         raise
     except Exception as e:
         logger.error("Get order failed", error=str(e), order_id=order_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/customer/{customer_id}")
+async def get_customer_orders(
+    request: Request,
+    customer_id: str,
+    limit: int = Query(20, ge=1, le=100)
+):
+    """Get all orders for a specific customer."""
+    try:
+        cosmos_service = request.app.state.cosmos
+        orders = await cosmos_service.get_orders_by_customer(customer_id, limit)
+        
+        return {
+            "customer_id": customer_id,
+            "orders": orders,
+            "total": len(orders)
+        }
+        
+    except Exception as e:
+        logger.error("Get customer orders failed", error=str(e), customer_id=customer_id)
         raise HTTPException(status_code=500, detail=str(e))
 
 
