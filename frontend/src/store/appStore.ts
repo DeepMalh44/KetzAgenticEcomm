@@ -60,6 +60,7 @@ export interface AppState {
   isLoading: boolean
   searchQuery: string
   selectedCategory: string | null
+  isVoiceSearchResult: boolean  // Flag to prevent auto-refresh overwriting voice/image search results
   
   // Cart
   cartItems: CartItem[]
@@ -78,11 +79,12 @@ export interface AppState {
   messages: ChatMessage[]
   
   // Product Actions
-  setProducts: (products: Product[]) => void
+  setProducts: (products: Product[], isVoiceSearch?: boolean) => void
   setSelectedProduct: (product: Product | null) => void
   setLoading: (loading: boolean) => void
   setSearchQuery: (query: string) => void
   setSelectedCategory: (category: string | null) => void
+  clearVoiceSearchFlag: () => void
   
   // Cart Actions
   addToCart: (product: Product, quantity?: number) => void
@@ -117,6 +119,7 @@ export const useAppStore = create<AppState>()(
       isLoading: false,
       searchQuery: '',
       selectedCategory: null,
+      isVoiceSearchResult: false,
       
       // Cart state
       cartItems: [],
@@ -135,11 +138,12 @@ export const useAppStore = create<AppState>()(
       messages: [],
       
       // Product Actions
-      setProducts: (products) => set({ products }),
+      setProducts: (products, isVoiceSearch = false) => set({ products, isVoiceSearchResult: isVoiceSearch }),
       setSelectedProduct: (product) => set({ selectedProduct: product }),
       setLoading: (loading) => set({ isLoading: loading }),
-      setSearchQuery: (query) => set({ searchQuery: query }),
+      setSearchQuery: (query) => set({ searchQuery: query, isVoiceSearchResult: false }),  // Clear flag when user types search
       setSelectedCategory: (category) => set({ selectedCategory: category }),
+      clearVoiceSearchFlag: () => set({ isVoiceSearchResult: false }),
       
       // Cart Actions
       addToCart: (product, quantity = 1) => set((state) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 import Header from './components/Header'
 import VoiceAssistant from './components/VoiceAssistant'
@@ -8,6 +8,7 @@ import ChatPanel from './components/ChatPanel'
 import CartPanel from './components/CartPanel'
 import OrdersPanel from './components/OrdersPanel'
 import { useAppStore } from './store/appStore'
+import { useRealtimeSession } from './hooks/useRealtimeSession'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
@@ -23,8 +24,15 @@ function App() {
     isCartOpen,
     setCartOpen,
     isOrdersOpen,
-    setOrdersOpen
+    setOrdersOpen,
+    isVoiceSearchResult,
   } = useAppStore()
+
+  // Shared realtime session for voice and chat
+  const realtimeSession = useRealtimeSession()
+
+  // Track if initial load has happened
+  const initialLoadDone = useRef(false)
 
   // Fetch products - either search or get all
   const fetchProducts = useCallback(async (query?: string) => {
@@ -46,13 +54,26 @@ function App() {
     }
   }, [setProducts, setLoading])
 
-  // Load initial products
+  // Load initial products (only once on mount)
   useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
+    if (!initialLoadDone.current) {
+      initialLoadDone.current = true
+      fetchProducts()
+    }
+  }, []) // Empty deps - only run once on mount
 
-  // Search with debounce
+  // Search with debounce (only for typed search, not voice)
   useEffect(() => {
+    // Don't auto-fetch if we have voice/image search results
+    if (isVoiceSearchResult) {
+      return
+    }
+    
+    // Skip if this is the initial mount (handled above)
+    if (!initialLoadDone.current) {
+      return
+    }
+    
     const timer = setTimeout(() => {
       if (searchQuery.trim()) {
         fetchProducts(searchQuery)
@@ -62,7 +83,7 @@ function App() {
     }, 300) // 300ms debounce
 
     return () => clearTimeout(timer)
-  }, [searchQuery, fetchProducts])
+  }, [searchQuery, isVoiceSearchResult]) // Remove fetchProducts from deps to prevent re-runs
 
   return (
     <Router>
@@ -125,10 +146,10 @@ function App() {
           {/* Right Panel - Voice Assistant & Chat */}
           <aside className="w-96 border-l border-slate-200 bg-white flex flex-col">
             {/* Voice Assistant */}
-            <VoiceAssistant />
+            <VoiceAssistant realtimeSession={realtimeSession} />
             
-            {/* Chat History */}
-            <ChatPanel />
+            {/* Chat History with Input */}
+            <ChatPanel realtimeSession={realtimeSession} />
           </aside>
         </div>
 

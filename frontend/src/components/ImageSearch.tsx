@@ -61,7 +61,7 @@ export default function ImageSearch({ onClose }: ImageSearchProps) {
       const result = await response.json()
       
       if (result.products && result.products.length > 0) {
-        setProducts(result.products)
+        setProducts(result.products, true)  // Set isVoiceSearch flag to prevent auto-refresh
         addMessage({
           id: crypto.randomUUID(),
           role: 'assistant',

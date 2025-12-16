@@ -1,10 +1,18 @@
-import { useRef, useEffect } from 'react'
-import { Person24Regular, Bot24Regular } from '@fluentui/react-icons'
+import { useRef, useEffect, useState, FormEvent } from 'react'
+import { Person24Regular, Bot24Regular, Send24Regular } from '@fluentui/react-icons'
 import { useAppStore, ChatMessage } from '../store/appStore'
+import { useRealtimeSession } from '../hooks/useRealtimeSession'
 
-export default function ChatPanel() {
+interface ChatPanelProps {
+  realtimeSession: ReturnType<typeof useRealtimeSession>
+}
+
+export default function ChatPanel({ realtimeSession }: ChatPanelProps) {
   const { messages } = useAppStore()
+  const { sendTextMessage, isSpeaking } = realtimeSession
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [inputText, setInputText] = useState('')
+  const [isSending, setIsSending] = useState(false)
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -13,13 +21,29 @@ export default function ChatPanel() {
     }
   }, [messages])
 
+  // Handle form submission
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!inputText.trim() || isSending) return
+
+    setIsSending(true)
+    try {
+      await sendTextMessage(inputText.trim())
+      setInputText('')
+    } catch (error) {
+      console.error('Failed to send message:', error)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-200">
         <h3 className="font-semibold text-slate-800">Conversation</h3>
         <p className="text-xs text-slate-500">
-          {messages.length} message{messages.length !== 1 ? 's' : ''}
+          {messages.length} message{messages.length !== 1 ? 's' : ''} • Type or speak
         </p>
       </div>
 
@@ -33,13 +57,56 @@ export default function ChatPanel() {
             <p className="text-slate-500 text-sm">
               Start a conversation with Ketz, your home improvement assistant
             </p>
+            <p className="text-slate-400 text-xs mt-2">
+              Use the mic button above or type below
+            </p>
           </div>
         ) : (
           messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
           ))
         )}
+        
+        {/* Typing indicator when assistant is responding */}
+        {isSpeaking && (
+          <div className="flex gap-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-accent-100 text-accent-600">
+              <Bot24Regular className="w-5 h-5" />
+            </div>
+            <div className="bg-slate-100 rounded-2xl rounded-tl-md px-4 py-2">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Chat Input */}
+      <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200 bg-slate-50">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Type a message..."
+            disabled={isSending}
+            className="flex-1 px-4 py-2 text-sm border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={!inputText.trim() || isSending}
+            className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Send24Regular className="w-5 h-5" />
+          </button>
+        </div>
+        <p className="text-xs text-slate-400 mt-2 text-center">
+          Press Enter to send • Or use voice above
+        </p>
+      </form>
     </div>
   )
 }

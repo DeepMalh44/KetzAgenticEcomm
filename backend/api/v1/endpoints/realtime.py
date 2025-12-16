@@ -339,6 +339,7 @@ class RealtimeSession:
         self.app_state = app_state
         self.openai_ws = None
         self.is_active = True
+        self.websocket_closed = False
         self.conversation_items = []
         
         # Initialize agents
@@ -546,46 +547,52 @@ class RealtimeSession:
                 
                 # Handle different event types
                 if event_type == "session.created":
-                    await self.websocket.send_json({
-                        "type": "session.ready",
-                        "session_id": self.session_id
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "session.ready",
+                            "session_id": self.session_id
+                        })
                 
                 elif event_type == "response.audio.delta":
                     # Forward audio to client
-                    await self.websocket.send_json({
-                        "type": "audio",
-                        "audio": data.get("delta", "")
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "audio",
+                            "audio": data.get("delta", "")
+                        })
                 
                 elif event_type == "response.audio_transcript.delta":
                     # Forward transcript to client
-                    await self.websocket.send_json({
-                        "type": "transcript",
-                        "role": "assistant",
-                        "delta": data.get("delta", "")
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "transcript",
+                            "role": "assistant",
+                            "delta": data.get("delta", "")
+                        })
                 
                 elif event_type == "input_audio_buffer.speech_started":
                     # User started speaking (barge-in detected)
-                    await self.websocket.send_json({
-                        "type": "user_speech_started"
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "user_speech_started"
+                        })
                 
                 elif event_type == "input_audio_buffer.speech_stopped":
                     # User stopped speaking
-                    await self.websocket.send_json({
-                        "type": "user_speech_stopped"
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "user_speech_stopped"
+                        })
                 
                 elif event_type == "conversation.item.input_audio_transcription.completed":
                     # User's speech transcribed
                     transcript = data.get("transcript", "")
-                    await self.websocket.send_json({
-                        "type": "transcript",
-                        "role": "user",
-                        "text": transcript
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "transcript",
+                            "role": "user",
+                            "text": transcript
+                        })
                 
                 elif event_type == "response.function_call_arguments.done":
                     # Tool call completed, execute it
@@ -599,20 +606,22 @@ class RealtimeSession:
                     # Send products to frontend if this was a search
                     if tool_name in ["search_products", "search_similar_products", "get_project_recommendations"]:
                         if "products" in result_data or "error" not in result_data:
-                            await self.websocket.send_json({
-                                "type": "products",
-                                "tool": tool_name,
-                                "data": result_data
-                            })
+                            if not self.websocket_closed:
+                                await self.websocket.send_json({
+                                    "type": "products",
+                                    "tool": tool_name,
+                                    "data": result_data
+                                })
                     
                     # Send cart actions to frontend
                     if tool_name in ["add_to_cart", "view_cart", "remove_from_cart", "clear_cart"]:
                         print(f"[CART] Sending cart_action to frontend: {tool_name}, data: {result_data}")
-                        await self.websocket.send_json({
-                            "type": "cart_action",
-                            "action": result_data.get("action"),
-                            "data": result_data
-                        })
+                        if not self.websocket_closed:
+                            await self.websocket.send_json({
+                                "type": "cart_action",
+                                "action": result_data.get("action"),
+                                "data": result_data
+                            })
                     
                     # Send tool result back to GPT-4o
                     await self.openai_ws.send(json.dumps({
@@ -631,25 +640,30 @@ class RealtimeSession:
                 
                 elif event_type == "response.done":
                     # Response completed
-                    await self.websocket.send_json({
-                        "type": "response.complete"
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "response.complete"
+                        })
                 
                 elif event_type == "error":
                     error_msg = data.get("error", {}).get("message", "Unknown error")
                     logger.error("OpenAI error", error=error_msg, session_id=self.session_id)
-                    await self.websocket.send_json({
-                        "type": "error",
-                        "message": error_msg
-                    })
+                    if not self.websocket_closed:
+                        await self.websocket.send_json({
+                            "type": "error",
+                            "message": error_msg
+                        })
                     
         except Exception as e:
             logger.error("Error processing OpenAI messages", error=str(e), session_id=self.session_id)
-            if self.is_active:
-                await self.websocket.send_json({
-                    "type": "error",
-                    "message": str(e)
-                })
+            if self.is_active and not self.websocket_closed:
+                try:
+                    await self.websocket.send_json({
+                        "type": "error",
+                        "message": str(e)
+                    })
+                except Exception:
+                    pass  # WebSocket already closed
     
     async def process_client_messages(self):
         """Process messages from the client WebSocket."""
@@ -720,8 +734,10 @@ class RealtimeSession:
                     
         except WebSocketDisconnect:
             logger.info("Client disconnected", session_id=self.session_id)
+            self.websocket_closed = True
         except Exception as e:
             logger.error("Error processing client messages", error=str(e), session_id=self.session_id)
+            self.websocket_closed = True
     
     async def run(self):
         """Run the realtime session."""

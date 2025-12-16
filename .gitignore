@@ -115,3 +115,23 @@ infra/terraform/.terraform/
 infra/terraform/terraform.tfstate*
 infra/terraform/tfplan
 *.tfplan
+
+# Local development scripts with credentials
+scripts/check_flooring.py
+scripts/check_urls.py
+scripts/update_flooring_images.py
+scripts/verify_final.py
+scripts/verify_flooring_db.py
+scripts/check_index_count.py
+scripts/clear_search_index.py
+scripts/verify_search_flooring.py
+scripts/verify_search_index.py
+scripts/fix_flooring_final.py
+scripts/verify_all_products.py
+scripts/inspect_index.py
+scripts/add_water_filters.py
+scripts/fix_flooring_images.py
+scripts/seed_products_200.py
+scripts/setup_complete_catalog.py
+water_filters.json
+SETUP_CATALOG.md
