@@ -75,6 +75,8 @@ class ProductResponse(BaseModel):
     image_url: Optional[str] = None
     rating: Optional[float] = None
     review_count: Optional[int] = None
+    review_score: Optional[float] = None
+    return_count: Optional[int] = None
     in_stock: bool = True
     stock_quantity: Optional[int] = None
 
@@ -93,6 +95,10 @@ async def search_products(
     category: Optional[str] = Query(None, description="Category filter"),
     min_price: Optional[float] = Query(None, ge=0),
     max_price: Optional[float] = Query(None, ge=0),
+    min_review_score: Optional[float] = Query(None, ge=0, le=5, description="Minimum review score (0-5)"),
+    min_return_count: Optional[int] = Query(None, ge=0, description="Minimum return count (for high returns filter)"),
+    sort_by: Optional[str] = Query(None, description="Sort by field: review_score, return_count, price, rating"),
+    sort_order: str = Query("desc", description="Sort order: asc or desc"),
     limit: int = Query(10, ge=1, le=50)
 ):
     """
@@ -104,6 +110,9 @@ async def search_products(
     - Vector search
     - Category filtering
     - Price range filtering
+    - Review score filtering (min_review_score)
+    - Return count filtering (min_return_count for high returns)
+    - Sorting by review_score, return_count, price, rating
     """
     try:
         search_service = request.app.state.search
@@ -113,6 +122,10 @@ async def search_products(
             category=category,
             min_price=min_price,
             max_price=max_price,
+            min_review_score=min_review_score,
+            min_return_count=min_return_count,
+            sort_by=sort_by,
+            sort_order=sort_order,
             limit=limit
         )
         
@@ -213,6 +226,8 @@ class CreateProductRequest(BaseModel):
     sale_price: Optional[float] = None
     rating: Optional[float] = None
     review_count: Optional[int] = None
+    review_score: Optional[float] = None
+    return_count: Optional[int] = None
     in_stock: bool = True
     stock_quantity: Optional[int] = None
     image_url: Optional[str] = None
@@ -282,6 +297,8 @@ async def create_product(request: Request, product_request: CreateProductRequest
                 "sale_price": product.get("sale_price"),
                 "rating": product.get("rating", 0),
                 "review_count": product.get("review_count", 0),
+                "review_score": product.get("review_score"),
+                "return_count": product.get("return_count"),
                 "in_stock": product.get("in_stock", True),
                 "featured": product.get("featured", False),
                 "image_url": product.get("image_url", ""),
@@ -569,6 +586,8 @@ async def reindex_products(
                         "sale_price": product.get("sale_price"),
                         "rating": product.get("rating", 0),
                         "review_count": product.get("review_count", 0),
+                        "review_score": product.get("review_score"),
+                        "return_count": product.get("return_count"),
                         "in_stock": product.get("in_stock", True),
                         "featured": product.get("featured", False),
                         "image_url": product.get("image_url", ""),
@@ -703,80 +722,4 @@ async def delete_product(request: Request, product_id: str):
     except Exception as e:
         logger.error("Failed to delete product", product_id=product_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
-
-
-class CreateProductRequest(BaseModel):
-    """Create product request."""
-    id: str
-    name: str
-    description: str
-    category: str
-    subcategory: Optional[str] = None
-    brand: str
-    sku: str
-    price: float
-    sale_price: Optional[float] = None
-    rating: Optional[float] = None
-    review_count: Optional[int] = None
-    in_stock: bool = True
-    stock_quantity: Optional[int] = None
-    image_url: Optional[str] = None
-    featured: Optional[bool] = None
-    specifications: Optional[dict] = None
-
-
-@router.post("/")
-async def create_product(request: Request, product_request: CreateProductRequest):
-    """Create a new product."""
-    try:
-        cosmos_service = request.app.state.cosmos
-        
-        # Check if product already exists
-        existing = await cosmos_service.get_product(product_request.id)
-        if existing:
-            raise HTTPException(status_code=409, detail=f"Product {product_request.id} already exists")
-        
-        product_dict = product_request.model_dump()
-        
-        await cosmos_service.create_product(product_dict)
-        
-        logger.info("Product created", product_id=product_request.id)
-        
-        return {
-            "status": "success",
-            "product_id": product_request.id,
-            "product": transform_product(product_dict, request)
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("Failed to create product", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-class BulkCreateProductsRequest(BaseModel):
-    """Bulk create products request."""
-    products: List[CreateProductRequest]
-
-
-@router.post("/bulk")
-async def bulk_create_products(request: Request, bulk_request: BulkCreateProductsRequest):
-    """Bulk create products."""
-    try:
-        cosmos_service = request.app.state.cosmos
-        
-        products = [p.model_dump() for p in bulk_request.products]
-        
-        count = await cosmos_service.bulk_insert_products(products)
-        
-        logger.info("Bulk products created", count=count)
-        
-        return {
-            "status": "success",
-            "message": f"Created {count} products"
-        }
-        
-    except Exception as e:
-        logger.error("Failed to bulk create products", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))

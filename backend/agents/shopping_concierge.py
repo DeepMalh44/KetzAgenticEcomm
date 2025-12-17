@@ -281,14 +281,22 @@ class ShoppingConciergeAgent:
         category: Optional[str] = None,
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
+        min_review_score: Optional[float] = None,
+        min_return_count: Optional[int] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "desc",
         limit: int = 5
     ) -> Dict[str, Any]:
         """
         Search for products using AI Search.
         
         Returns products matching the query with optional filters.
+        Supports filtering by review_score and return_count.
+        Can sort by review_score, return_count, price, or rating.
         """
-        logger.info("Searching products", query=query, category=category)
+        logger.info("Searching products", query=query, category=category, 
+                   min_review_score=min_review_score, min_return_count=min_return_count,
+                   sort_by=sort_by)
         
         try:
             # Use AI Search for full-featured search
@@ -297,14 +305,33 @@ class ShoppingConciergeAgent:
                 category=category,
                 min_price=min_price,
                 max_price=max_price,
+                min_review_score=min_review_score,
+                min_return_count=min_return_count,
+                sort_by=sort_by,
+                sort_order=sort_order,
                 limit=limit
             )
+            
+            if not products and category:
+                # Retry without category filter - the model may have picked wrong category
+                logger.info("No results with category filter, retrying without", query=query, category=category)
+                products = await self.search.search_products(
+                    query=query,
+                    category=None,  # Remove category filter
+                    min_price=min_price,
+                    max_price=max_price,
+                    min_review_score=min_review_score,
+                    min_return_count=min_return_count,
+                    sort_by=sort_by,
+                    sort_order=sort_order,
+                    limit=limit
+                )
             
             if not products:
                 # Fallback to Cosmos DB text search
                 products = await self.cosmos.search_products_text(
                     query=query,
-                    category=category,
+                    category=None,  # Don't filter by category in fallback
                     min_price=min_price,
                     max_price=max_price,
                     limit=limit
@@ -322,6 +349,8 @@ class ShoppingConciergeAgent:
                             "original_price": p["price"] if p.get("sale_price") else None,
                             "brand": p.get("brand", ""),
                             "rating": p.get("rating"),
+                            "review_score": p.get("review_score"),
+                            "return_count": p.get("return_count", 0),
                             "in_stock": p.get("in_stock", True)
                         }
                         for p in products

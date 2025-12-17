@@ -60,6 +60,8 @@ def create_product_index():
         SimpleField(name="sale_price", type=SearchFieldDataType.Double, filterable=True, sortable=True),
         SimpleField(name="rating", type=SearchFieldDataType.Double, filterable=True, sortable=True),
         SimpleField(name="review_count", type=SearchFieldDataType.Int32, filterable=True, sortable=True),
+        SimpleField(name="review_score", type=SearchFieldDataType.Double, filterable=True, sortable=True),
+        SimpleField(name="return_count", type=SearchFieldDataType.Int32, filterable=True, sortable=True),
         SimpleField(name="in_stock", type=SearchFieldDataType.Boolean, filterable=True, facetable=True),
         SimpleField(name="featured", type=SearchFieldDataType.Boolean, filterable=True),
         SimpleField(name="image_url", type=SearchFieldDataType.String),

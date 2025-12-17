@@ -287,6 +287,21 @@ def generate_product(index: int, product_data: tuple) -> dict:
     price = round(base_price * (1 + random.uniform(-0.05, 0.05)), 2)
     sale_price = round(price * 0.9, 2) if random.random() < 0.3 else None
     
+    # Generate review_score (0-5 scale, most products have good reviews)
+    # Weight towards higher scores (3.5-5.0 for most)
+    review_score = round(random.uniform(3.0, 5.0), 1)
+    
+    # Generate return_count - most products have 0 returns
+    # About 15% of products have some returns (1-10)
+    # About 5% of products have high returns (10-50) - these are the "problem" products
+    return_rand = random.random()
+    if return_rand < 0.80:  # 80% have 0 returns
+        return_count = 0
+    elif return_rand < 0.95:  # 15% have low returns (1-10)
+        return_count = random.randint(1, 10)
+    else:  # 5% have high returns (15-50)
+        return_count = random.randint(15, 50)
+    
     return {
         "id": str(uuid.uuid4()),
         "name": name,
@@ -300,6 +315,8 @@ def generate_product(index: int, product_data: tuple) -> dict:
         "image_url": build_image_url(blob_filename),
         "rating": round(random.uniform(3.5, 5.0), 1),
         "review_count": random.randint(10, 500),
+        "review_score": review_score,
+        "return_count": return_count,
         "in_stock": random.random() > 0.1,
         "stock_quantity": random.randint(5, 100) if random.random() > 0.1 else 0,
         "featured": random.random() < 0.2

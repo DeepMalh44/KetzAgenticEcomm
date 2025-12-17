@@ -20,6 +20,10 @@ async def search_products(
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     min_rating: Optional[float] = None,
+    min_review_score: Optional[float] = None,
+    min_return_count: Optional[int] = None,
+    sort_by: Optional[str] = None,
+    sort_order: str = "desc",
     in_stock: bool = True,
     limit: int = 5,
     ai_search: Optional[AISearchService] = None,
@@ -33,6 +37,10 @@ async def search_products(
         min_price: Minimum price filter
         max_price: Maximum price filter
         min_rating: Minimum rating filter
+        min_review_score: Minimum review score filter (0-5 scale)
+        min_return_count: Minimum return count filter (for high returns)
+        sort_by: Sort by field (review_score, return_count, price, rating)
+        sort_order: Sort order (asc or desc)
         in_stock: Only show in-stock items
         limit: Maximum number of results
         ai_search: AISearchService instance
@@ -48,26 +56,17 @@ async def search_products(
                 "products": []
             }
         
-        # Build filters
-        filters = []
-        if category:
-            filters.append(f"category eq '{category}'")
-        if min_price is not None:
-            filters.append(f"price ge {min_price}")
-        if max_price is not None:
-            filters.append(f"price le {max_price}")
-        if min_rating is not None:
-            filters.append(f"rating ge {min_rating}")
-        if in_stock:
-            filters.append("stock_quantity gt 0")
-        
-        filter_str = " and ".join(filters) if filters else None
-        
-        # Perform search
+        # Perform search with new parameters
         results = await ai_search.search_products(
             query=query,
-            filter=filter_str,
-            top=limit
+            category=category,
+            min_price=min_price,
+            max_price=max_price,
+            min_review_score=min_review_score,
+            min_return_count=min_return_count,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            limit=limit
         )
         
         # Format results for voice response
@@ -81,6 +80,8 @@ async def search_products(
                 "category": result.get("category"),
                 "brand": result.get("brand"),
                 "rating": result.get("rating"),
+                "review_score": result.get("review_score"),
+                "return_count": result.get("return_count"),
                 "stock_quantity": result.get("stock_quantity"),
                 "image_url": result.get("image_url"),
                 "sku": result.get("sku"),
@@ -95,6 +96,10 @@ async def search_products(
                 "category": category,
                 "price_range": [min_price, max_price] if min_price or max_price else None,
                 "min_rating": min_rating,
+                "min_review_score": min_review_score,
+                "min_return_count": min_return_count,
+                "sort_by": sort_by,
+                "sort_order": sort_order,
                 "in_stock_only": in_stock
             }
         }
@@ -150,6 +155,8 @@ async def get_product_details(
                 "brand": product.get("brand"),
                 "rating": product.get("rating"),
                 "review_count": product.get("review_count"),
+                "review_score": product.get("review_score"),
+                "return_count": product.get("return_count"),
                 "stock_quantity": product.get("stock_quantity"),
                 "specifications": product.get("specifications", {}),
                 "features": product.get("features", []),

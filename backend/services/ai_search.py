@@ -91,7 +91,9 @@ class AISearchService:
             SimpleField(name="price", type=SearchFieldDataType.Double, filterable=True, sortable=True),
             SimpleField(name="sale_price", type=SearchFieldDataType.Double, filterable=True, sortable=True),
             SimpleField(name="rating", type=SearchFieldDataType.Double, filterable=True, sortable=True),
-            SimpleField(name="review_count", type=SearchFieldDataType.Int32, filterable=True),
+            SimpleField(name="review_count", type=SearchFieldDataType.Int32, filterable=True, sortable=True),
+            SimpleField(name="review_score", type=SearchFieldDataType.Double, filterable=True, sortable=True),
+            SimpleField(name="return_count", type=SearchFieldDataType.Int32, filterable=True, sortable=True),
             SimpleField(name="in_stock", type=SearchFieldDataType.Boolean, filterable=True),
             SimpleField(name="image_url", type=SearchFieldDataType.String),
             # Vector field for image embeddings (1024 dimensions for Florence)
@@ -169,12 +171,17 @@ class AISearchService:
         category: Optional[str] = None,
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
+        min_review_score: Optional[float] = None,
+        min_return_count: Optional[int] = None,
+        sort_by: Optional[str] = None,  # "review_score", "return_count", "price", "rating"
+        sort_order: str = "desc",
         limit: int = 10,
         use_semantic: bool = True  # Enabled - Standard tier available
     ) -> List[Dict[str, Any]]:
         """
         Search for products using semantic search.
         Semantic search provides better understanding of search intent.
+        Supports filtering by review_score and return_count, and sorting.
         """
         # Build filter
         filters = []
@@ -184,10 +191,21 @@ class AISearchService:
             filters.append(f"price ge {min_price}")
         if max_price is not None:
             filters.append(f"price le {max_price}")
+        if min_review_score is not None:
+            filters.append(f"review_score ge {min_review_score}")
+        if min_return_count is not None:
+            filters.append(f"return_count ge {min_return_count}")
         
         filter_str = " and ".join(filters) if filters else None
         
-        logger.info(f"Searching with semantic={use_semantic}, query={query}, filter={filter_str}")
+        # Build order_by clause
+        order_by = None
+        if sort_by in ["review_score", "return_count", "price", "rating"]:
+            order_by = f"{sort_by} {'desc' if sort_order == 'desc' else 'asc'}"
+            # Semantic search doesn't support orderBy, so disable it when sorting
+            use_semantic = False
+        
+        logger.info(f"Searching with semantic={use_semantic}, query={query}, filter={filter_str}, order_by={order_by}")
         
         # Perform search
         results = self.search_client.search(
@@ -196,10 +214,11 @@ class AISearchService:
             query_type="semantic" if use_semantic else "simple",
             semantic_configuration_name="product-semantic-config" if use_semantic else None,
             top=limit,
+            order_by=order_by if not use_semantic else None,
             include_total_count=True,
             select=["id", "name", "description", "category", "subcategory", 
                    "brand", "sku", "price", "sale_price", "rating", 
-                   "review_count", "in_stock", "image_url"]
+                   "review_count", "review_score", "return_count", "in_stock", "image_url"]
         )
         
         products = []
