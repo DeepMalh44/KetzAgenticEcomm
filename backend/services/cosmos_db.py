@@ -336,6 +336,21 @@ class CosmosDBService:
             "estimated_delivery": "2-3 business days"
         }
     
+    async def delete_product(self, product_id: str) -> bool:
+        """Delete a product by ID."""
+        result = await self.products.delete_one({"id": product_id})
+        if result.deleted_count > 0:
+            logger.info("Product deleted", product_id=product_id)
+            return True
+        return False
+    
+    async def delete_all_products(self) -> int:
+        """Delete all products from the collection."""
+        result = await self.products.delete_many({})
+        count = result.deleted_count
+        logger.info("All products deleted", count=count)
+        return count
+
     async def close(self):
         """Close the database connection."""
         self.client.close()

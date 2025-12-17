@@ -602,3 +602,181 @@ async def reindex_products(
     except Exception as e:
         logger.error("Reindex failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class UpdateProductRequest(BaseModel):
+    """Update product request - all fields optional."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    subcategory: Optional[str] = None
+    brand: Optional[str] = None
+    sku: Optional[str] = None
+    price: Optional[float] = None
+    sale_price: Optional[float] = None
+    rating: Optional[float] = None
+    review_count: Optional[int] = None
+    in_stock: Optional[bool] = None
+    stock_quantity: Optional[int] = None
+    image_url: Optional[str] = None
+    featured: Optional[bool] = None
+    specifications: Optional[dict] = None
+
+
+@router.patch("/{product_id}")
+async def update_product(request: Request, product_id: str, update_request: UpdateProductRequest):
+    """Update an existing product."""
+    try:
+        cosmos_service = request.app.state.cosmos
+        
+        # Get only non-None fields
+        updates = {k: v for k, v in update_request.model_dump().items() if v is not None}
+        
+        if not updates:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        # Update in Cosmos DB
+        success = await cosmos_service.update_product(product_id, updates)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
+        
+        # Get updated product
+        updated_product = await cosmos_service.get_product(product_id)
+        
+        logger.info("Product updated", product_id=product_id, fields=list(updates.keys()))
+        
+        return {
+            "status": "success",
+            "product_id": product_id,
+            "updated_fields": list(updates.keys()),
+            "product": transform_product(updated_product, request) if updated_product else None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to update product", product_id=product_id, error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/all")
+async def delete_all_products(request: Request):
+    """Delete all products from the database. USE WITH CAUTION."""
+    try:
+        cosmos_service = request.app.state.cosmos
+        
+        deleted_count = await cosmos_service.delete_all_products()
+        
+        logger.warning("All products deleted", count=deleted_count)
+        
+        return {
+            "status": "success",
+            "message": f"Deleted {deleted_count} products"
+        }
+        
+    except Exception as e:
+        logger.error("Failed to delete all products", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{product_id}")
+async def delete_product(request: Request, product_id: str):
+    """Delete a single product by ID."""
+    try:
+        cosmos_service = request.app.state.cosmos
+        
+        success = await cosmos_service.delete_product(product_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
+        
+        logger.info("Product deleted", product_id=product_id)
+        
+        return {
+            "status": "success",
+            "message": f"Product {product_id} deleted"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to delete product", product_id=product_id, error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class CreateProductRequest(BaseModel):
+    """Create product request."""
+    id: str
+    name: str
+    description: str
+    category: str
+    subcategory: Optional[str] = None
+    brand: str
+    sku: str
+    price: float
+    sale_price: Optional[float] = None
+    rating: Optional[float] = None
+    review_count: Optional[int] = None
+    in_stock: bool = True
+    stock_quantity: Optional[int] = None
+    image_url: Optional[str] = None
+    featured: Optional[bool] = None
+    specifications: Optional[dict] = None
+
+
+@router.post("/")
+async def create_product(request: Request, product_request: CreateProductRequest):
+    """Create a new product."""
+    try:
+        cosmos_service = request.app.state.cosmos
+        
+        # Check if product already exists
+        existing = await cosmos_service.get_product(product_request.id)
+        if existing:
+            raise HTTPException(status_code=409, detail=f"Product {product_request.id} already exists")
+        
+        product_dict = product_request.model_dump()
+        
+        await cosmos_service.create_product(product_dict)
+        
+        logger.info("Product created", product_id=product_request.id)
+        
+        return {
+            "status": "success",
+            "product_id": product_request.id,
+            "product": transform_product(product_dict, request)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to create product", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class BulkCreateProductsRequest(BaseModel):
+    """Bulk create products request."""
+    products: List[CreateProductRequest]
+
+
+@router.post("/bulk")
+async def bulk_create_products(request: Request, bulk_request: BulkCreateProductsRequest):
+    """Bulk create products."""
+    try:
+        cosmos_service = request.app.state.cosmos
+        
+        products = [p.model_dump() for p in bulk_request.products]
+        
+        count = await cosmos_service.bulk_insert_products(products)
+        
+        logger.info("Bulk products created", count=count)
+        
+        return {
+            "status": "success",
+            "message": f"Created {count} products"
+        }
+        
+    except Exception as e:
+        logger.error("Failed to bulk create products", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
