@@ -135,3 +135,12 @@ scripts/seed_products_200.py
 scripts/setup_complete_catalog.py
 water_filters.json
 SETUP_CATALOG.md
+# Downloaded images (uploaded to Azure Blob Storage)
+ImagesfromInternet/
+products.csv
+
+# Temporary update scripts
+scripts/update_images_efficient.py
+scripts/update_images_via_api.py
+scripts/update_product_images.py
+scripts/update_via_api.py
