@@ -21,6 +21,7 @@ from config import settings
 from services.cosmos_db import CosmosDBService
 from services.ai_search import AISearchService
 from services.blob_storage import BlobStorageService
+from services.search_analytics import SearchAnalyticsService
 from api.v1.endpoints import realtime, products, orders, images, images_proxy
 
 
@@ -88,6 +89,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         app.state.blob_service = blob_service  # Also store as blob_service for image proxy
         logger.info("Blob Storage initialized")
         
+        # Search Analytics - for tracking search traffic
+        analytics_service = SearchAnalyticsService(
+            connection_string=settings.applicationinsights_connection_string
+        )
+        app.state.analytics = analytics_service
+        logger.info("Search Analytics initialized", 
+                   enabled=analytics_service.enabled)
+        
         logger.info("All services initialized successfully")
         
     except Exception as e:
@@ -98,6 +107,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     
     # Cleanup
     logger.info("Shutting down KetzAgenticEcomm")
+    
+    # Flush analytics before shutdown
+    if hasattr(app.state, 'analytics') and app.state.analytics:
+        app.state.analytics.close()
+        logger.info("Search Analytics flushed")
 
 
 # Create FastAPI app

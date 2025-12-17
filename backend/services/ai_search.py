@@ -78,15 +78,28 @@ class AISearchService:
         
         logger.info("AI Search service initialized", index=index_name)
     
-    async def create_index(self):
-        """Create or update the product search index."""
+    async def create_index(self, synonym_map_name: str = "product-synonyms"):
+        """Create or update the product search index.
+        
+        Args:
+            synonym_map_name: Name of the synonym map to use for name/description fields.
+                            Set to None to disable synonym expansion.
+        """
+        # Build synonym map reference if provided
+        synonym_maps = [synonym_map_name] if synonym_map_name else None
+        
         fields = [
             SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-            SearchableField(name="name", type=SearchFieldDataType.String, analyzer_name="en.microsoft"),
-            SearchableField(name="description", type=SearchFieldDataType.String, analyzer_name="en.microsoft"),
+            # Name and description use synonym map for better search recall
+            SearchableField(name="name", type=SearchFieldDataType.String, 
+                          analyzer_name="en.microsoft", synonym_map_names=synonym_maps),
+            SearchableField(name="description", type=SearchFieldDataType.String, 
+                          analyzer_name="en.microsoft", synonym_map_names=synonym_maps),
             SearchableField(name="category", type=SearchFieldDataType.String, filterable=True, facetable=True),
             SearchableField(name="subcategory", type=SearchFieldDataType.String, filterable=True, facetable=True),
-            SearchableField(name="brand", type=SearchFieldDataType.String, filterable=True, facetable=True),
+            # Brand also uses synonyms for misspelling tolerance
+            SearchableField(name="brand", type=SearchFieldDataType.String, filterable=True, facetable=True,
+                          synonym_map_names=synonym_maps),
             SimpleField(name="sku", type=SearchFieldDataType.String),
             SimpleField(name="price", type=SearchFieldDataType.Double, filterable=True, sortable=True),
             SimpleField(name="sale_price", type=SearchFieldDataType.Double, filterable=True, sortable=True),

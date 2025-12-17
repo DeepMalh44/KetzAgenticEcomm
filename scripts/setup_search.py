@@ -3,7 +3,7 @@ AI Search Setup Script
 =======================
 
 Creates the product search index in Azure AI Search with 
-vector search and semantic ranking configuration.
+vector search, semantic ranking, and synonym map configuration.
 """
 
 import asyncio
@@ -26,9 +26,17 @@ from azure.search.documents.indexes.models import (
 )
 from azure.core.credentials import AzureKeyCredential
 
+# Synonym map name (must be created first via setup_synonyms.py)
+SYNONYM_MAP_NAME = "product-synonyms"
 
-def create_product_index():
-    """Create the products search index."""
+
+def create_product_index(use_synonyms: bool = True):
+    """Create the products search index.
+    
+    Args:
+        use_synonyms: If True, link synonym map to searchable fields.
+                     Make sure to run setup_synonyms.py first!
+    """
     print("🔍 Setting up Azure AI Search index...")
     
     # Get configuration from environment
@@ -42,19 +50,27 @@ def create_product_index():
     
     print(f"   Endpoint: {endpoint}")
     print(f"   Index: {index_name}")
+    print(f"   Synonyms: {'enabled' if use_synonyms else 'disabled'}")
     
     # Initialize client
     credential = AzureKeyCredential(key)
     client = SearchIndexClient(endpoint, credential)
     
-    # Define fields
+    # Synonym map reference (if enabled)
+    synonym_maps = [SYNONYM_MAP_NAME] if use_synonyms else None
+    
+    # Define fields - name, description, and brand use synonym map for better search
     fields = [
         SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-        SearchableField(name="name", type=SearchFieldDataType.String, analyzer_name="en.microsoft"),
-        SearchableField(name="description", type=SearchFieldDataType.String, analyzer_name="en.microsoft"),
+        # These fields use synonym map for query expansion
+        SearchableField(name="name", type=SearchFieldDataType.String, 
+                       analyzer_name="en.microsoft", synonym_map_names=synonym_maps),
+        SearchableField(name="description", type=SearchFieldDataType.String, 
+                       analyzer_name="en.microsoft", synonym_map_names=synonym_maps),
         SearchableField(name="category", type=SearchFieldDataType.String, filterable=True, facetable=True, sortable=True),
         SearchableField(name="subcategory", type=SearchFieldDataType.String, filterable=True, facetable=True),
-        SearchableField(name="brand", type=SearchFieldDataType.String, filterable=True, facetable=True),
+        SearchableField(name="brand", type=SearchFieldDataType.String, filterable=True, facetable=True,
+                       synonym_map_names=synonym_maps),
         SimpleField(name="sku", type=SearchFieldDataType.String, filterable=True),
         SimpleField(name="price", type=SearchFieldDataType.Double, filterable=True, sortable=True, facetable=True),
         SimpleField(name="sale_price", type=SearchFieldDataType.Double, filterable=True, sortable=True),

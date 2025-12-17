@@ -86,9 +86,26 @@ class ProductListResponse(BaseModel):
     products: List[ProductResponse]
     total: int
     query: str
+    search_id: Optional[str] = None  # For correlating with click events
 
 
-@router.get("/search", response_model=ProductListResponse)
+class SearchAnalyticsResponse(BaseModel):
+    """Response model for search with analytics."""
+    products: List[ProductResponse]
+    total: int
+    query: str
+    search_id: str  # Unique ID for tracking clicks
+
+
+class ClickTrackingRequest(BaseModel):
+    """Request model for tracking clicks on search results."""
+    search_id: str = Field(..., description="The search ID from the search response")
+    product_id: str = Field(..., description="The clicked product ID")
+    rank: int = Field(..., ge=1, description="Position of the clicked result (1-based)")
+    query: Optional[str] = Field(None, description="Original search query")
+
+
+@router.get("/search", response_model=SearchAnalyticsResponse)
 async def search_products(
     request: Request,
     query: str = Query(..., description="Search query"),
@@ -104,6 +121,8 @@ async def search_products(
     """
     Search for products using Azure AI Search.
     
+    Returns a search_id that should be used when tracking clicks for analytics.
+    
     Supports:
     - Full-text search
     - Semantic search
@@ -114,6 +133,12 @@ async def search_products(
     - Return count filtering (min_return_count for high returns)
     - Sorting by review_score, return_count, price, rating
     """
+    import time
+    import uuid
+    
+    start_time = time.time()
+    search_id = str(uuid.uuid4())
+    
     try:
         search_service = request.app.state.search
         
@@ -129,18 +154,113 @@ async def search_products(
             limit=limit
         )
         
+        duration_ms = (time.time() - start_time) * 1000
+        
+        # Track search analytics
+        analytics = getattr(request.app.state, 'analytics', None)
+        if analytics:
+            analytics.track_search(
+                search_id=search_id,
+                query=query,
+                results_count=len(results),
+                category=category,
+                min_price=min_price,
+                max_price=max_price,
+                sort_by=sort_by,
+                duration_ms=duration_ms
+            )
+        
         # Transform image URLs to use proxy
         transformed = [transform_product(p, request) for p in results]
         
-        return ProductListResponse(
+        logger.info("Search completed with analytics", 
+                   search_id=search_id, 
+                   query=query, 
+                   results=len(transformed),
+                   duration_ms=round(duration_ms, 2))
+        
+        return SearchAnalyticsResponse(
             products=[ProductResponse(**p) for p in transformed],
             total=len(transformed),
-            query=query
+            query=query,
+            search_id=search_id
         )
         
     except Exception as e:
-        logger.error("Search failed", error=str(e), query=query)
+        logger.error("Search failed", error=str(e), query=query, search_id=search_id)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/track-click")
+async def track_click(request: Request, click_data: ClickTrackingRequest):
+    """
+    Track a click event when user clicks on a search result.
+    
+    This should be called by the frontend when a user clicks on a product
+    from search results. The search_id should come from the search response.
+    
+    This data is used to:
+    - Calculate click-through rates
+    - Improve search relevance
+    - Analyze user behavior
+    """
+    try:
+        analytics = getattr(request.app.state, 'analytics', None)
+        if analytics:
+            analytics.track_click(
+                search_id=click_data.search_id,
+                clicked_doc_id=click_data.product_id,
+                rank=click_data.rank,
+                query=click_data.query
+            )
+            logger.info("Click tracked", 
+                       search_id=click_data.search_id,
+                       product_id=click_data.product_id,
+                       rank=click_data.rank)
+            return {"status": "tracked", "search_id": click_data.search_id}
+        else:
+            return {"status": "skipped", "reason": "analytics disabled"}
+    except Exception as e:
+        logger.error("Failed to track click", error=str(e))
+        # Don't fail the request if tracking fails
+        return {"status": "error", "reason": str(e)}
+
+
+@router.post("/track-add-to-cart")
+async def track_add_to_cart(
+    request: Request,
+    product_id: str = Query(..., description="Product ID"),
+    product_name: str = Query(..., description="Product name"),
+    quantity: int = Query(1, ge=1, description="Quantity"),
+    price: Optional[float] = Query(None, description="Product price"),
+    search_id: Optional[str] = Query(None, description="Search ID if from search results")
+):
+    """
+    Track an add-to-cart event.
+    
+    This should be called when a user adds a product to their cart.
+    Include search_id if the product was found via search.
+    """
+    try:
+        analytics = getattr(request.app.state, 'analytics', None)
+        if analytics:
+            analytics.track_add_to_cart(
+                search_id=search_id,
+                product_id=product_id,
+                product_name=product_name,
+                quantity=quantity,
+                price=price
+            )
+            logger.info("Add-to-cart tracked", 
+                       product_id=product_id,
+                       quantity=quantity,
+                       search_id=search_id)
+            return {"status": "tracked", "product_id": product_id}
+        else:
+            return {"status": "skipped", "reason": "analytics disabled"}
+    except Exception as e:
+        logger.error("Failed to track add-to-cart", error=str(e))
+        return {"status": "error", "reason": str(e)}
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
