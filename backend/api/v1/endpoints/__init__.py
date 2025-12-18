@@ -5,3 +5,4 @@ from . import products
 from . import orders
 from . import images
 from . import images_proxy
+from . import agentic

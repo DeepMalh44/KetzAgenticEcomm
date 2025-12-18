@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     azure_search_index: str = "products"
     azure_search_image_index: str = "product-images"
     
+    # Agentic Retrieval Configuration (Preview)
+    knowledge_base_name: str = "products-kb"
+    knowledge_source_name: str = "products-ks"
+    
     # Azure Cosmos DB Configuration
     azure_cosmos_endpoint: str = ""  # For managed identity auth
     azure_cosmos_connection_string: str = ""  # For connection string auth (MongoDB API)

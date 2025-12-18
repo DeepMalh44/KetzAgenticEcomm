@@ -22,7 +22,7 @@ from services.cosmos_db import CosmosDBService
 from services.ai_search import AISearchService
 from services.blob_storage import BlobStorageService
 from services.search_analytics import SearchAnalyticsService
-from api.v1.endpoints import realtime, products, orders, images, images_proxy
+from api.v1.endpoints import realtime, products, orders, images, images_proxy, agentic
 
 
 # Configure structured logging
@@ -182,6 +182,12 @@ app.include_router(
     images_proxy.router,
     prefix="/api/v1/img",
     tags=["Image Proxy"]
+)
+
+app.include_router(
+    agentic.router,
+    prefix="/api/v1/agentic",
+    tags=["Agentic Retrieval"]
 )
 
 
