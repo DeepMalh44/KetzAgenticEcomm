@@ -22,7 +22,13 @@ export default function AgenticSearchPage({ realtimeSession, showImageSearch, se
     setProducts, 
     setLoading,
     isVoiceSearchResult,
+    setSearchMode,
   } = useAppStore()
+
+  // Set search mode to agentic when this page loads
+  useEffect(() => {
+    setSearchMode('agentic')
+  }, [setSearchMode])
 
   // State for LLM response and activity
   const [llmResponse, setLlmResponse] = useState<string | null>(null)

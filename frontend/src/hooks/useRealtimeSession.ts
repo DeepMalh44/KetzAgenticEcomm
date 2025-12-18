@@ -80,6 +80,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     removeFromCart,
     clearCart,
     setCartOpen,
+    searchMode,
   } = useAppStore()
 
   // WebSocket and audio refs
@@ -110,6 +111,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
   const searchCounterRef = useRef(0)
 
   // Fetch full product details from the API based on voice search results
+  // Uses either semantic or agentic endpoint based on searchMode
   const fetchFullProducts = useCallback(async (partialProducts: Array<{ id: string; name: string }>) => {
     try {
       if (!partialProducts || partialProducts.length === 0) {
@@ -120,24 +122,44 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
       searchCounterRef.current += 1
       const thisSearchId = searchCounterRef.current
 
-      console.log(`🔍 [Search #${thisSearchId}] Starting search:`, partialProducts.map(p => p.name))
+      console.log(`🔍 [Search #${thisSearchId}] Starting ${searchMode} search:`, partialProducts.map(p => p.name))
 
       // Clear previous products IMMEDIATELY
       setProducts([], true)
 
-      // Search for each product by name to get full details
-      const searchPromises = partialProducts.slice(0, 5).map(async (p) => {
-        const searchResponse = await fetch(
-          `${BACKEND_URL}/api/v1/products/search?query=${encodeURIComponent(p.name)}&limit=1`
-        )
-        if (searchResponse.ok) {
-          const data = await searchResponse.json()
-          return data.products?.[0] || null
-        }
-        return null
-      })
+      let results: any[] = []
 
-      const results = await Promise.all(searchPromises)
+      if (searchMode === 'agentic') {
+        // Use agentic retrieval - combine all product names into one query
+        // This lets the LLM decompose the query intelligently
+        const combinedQuery = partialProducts.map(p => p.name).join(', ')
+        console.log(`🤖 [Agentic] Combined query: "${combinedQuery}"`)
+        
+        const response = await fetch(`${BACKEND_URL}/api/v1/agentic/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: combinedQuery, top: 20 })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          results = data.products || []
+          console.log(`🤖 [Agentic] Got ${results.length} products`)
+        }
+      } else {
+        // Use semantic search - search for each product individually
+        const searchPromises = partialProducts.slice(0, 5).map(async (p) => {
+          const searchResponse = await fetch(
+            `${BACKEND_URL}/api/v1/products/search?query=${encodeURIComponent(p.name)}&limit=1`
+          )
+          if (searchResponse.ok) {
+            const data = await searchResponse.json()
+            return data.products?.[0] || null
+          }
+          return null
+        })
+        results = await Promise.all(searchPromises)
+      }
 
       // Check if this is still the latest search
       if (thisSearchId !== searchCounterRef.current) {
@@ -159,7 +181,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     } catch (error) {
       console.error('Failed to fetch full products:', error)
     }
-  }, [setProducts])
+  }, [setProducts, searchMode])
 
   // Initialize AudioWorklet playback system
   const initPlayback = useCallback(async () => {

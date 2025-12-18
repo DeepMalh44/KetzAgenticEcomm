@@ -53,6 +53,8 @@ export interface ChatMessage {
   products?: Product[]
 }
 
+export type SearchMode = 'semantic' | 'agentic'
+
 export interface AppState {
   // Products
   products: Product[]
@@ -61,6 +63,7 @@ export interface AppState {
   searchQuery: string
   selectedCategory: string | null
   isVoiceSearchResult: boolean  // Flag to prevent auto-refresh overwriting voice/image search results
+  searchMode: SearchMode  // Which search endpoint to use for voice/typed search
   
   // Cart
   cartItems: CartItem[]
@@ -85,6 +88,7 @@ export interface AppState {
   setSearchQuery: (query: string) => void
   setSelectedCategory: (category: string | null) => void
   clearVoiceSearchFlag: () => void
+  setSearchMode: (mode: SearchMode) => void
   
   // Cart Actions
   addToCart: (product: Product, quantity?: number) => void
@@ -120,6 +124,7 @@ export const useAppStore = create<AppState>()(
       searchQuery: '',
       selectedCategory: null,
       isVoiceSearchResult: false,
+      searchMode: 'semantic',
       
       // Cart state
       cartItems: [],
@@ -144,6 +149,7 @@ export const useAppStore = create<AppState>()(
       setSearchQuery: (query) => set({ searchQuery: query, isVoiceSearchResult: false }),  // Clear flag when user types search
       setSelectedCategory: (category) => set({ selectedCategory: category }),
       clearVoiceSearchFlag: () => set({ isVoiceSearchResult: false }),
+      setSearchMode: (mode) => set({ searchMode: mode }),
       
       // Cart Actions
       addToCart: (product, quantity = 1) => set((state) => {

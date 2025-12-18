@@ -22,7 +22,13 @@ export default function HomePage({ realtimeSession, showImageSearch, setShowImag
     setProducts, 
     setLoading,
     isVoiceSearchResult,
+    setSearchMode,
   } = useAppStore()
+
+  // Set search mode to semantic when this page loads
+  useEffect(() => {
+    setSearchMode('semantic')
+  }, [setSearchMode])
 
   // Track if initial load has happened
   const initialLoadDone = useRef(false)
