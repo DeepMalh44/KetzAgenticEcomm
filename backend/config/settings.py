@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     applicationinsights_connection_string: str = ""
     
     # YouTube API Configuration
-    youtube_api_key: str = "AIzaSyDiP1N_9TVBhlP5bnVTGutvHHzLwXemwNY"
+    youtube_api_key: str = "GET THIS KEY from YOUR YOUTUBE DEV ACCOUNT FOR TSTING"
     
     # Server Configuration
     host: str = "0.0.0.0"
