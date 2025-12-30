@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, FormEvent } from 'react'
-import { Person24Regular, Bot24Regular, Send24Regular } from '@fluentui/react-icons'
-import { useAppStore, ChatMessage } from '../store/appStore'
+import { Person24Regular, Bot24Regular, Send24Regular, Video24Regular, Eye24Regular } from '@fluentui/react-icons'
+import { useAppStore, ChatMessage, DIYVideo } from '../store/appStore'
 import { useRealtimeSession } from '../hooks/useRealtimeSession'
 
 interface ChatPanelProps {
@@ -8,18 +8,18 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ realtimeSession }: ChatPanelProps) {
-  const { messages } = useAppStore()
+  const { messages, diyVideos, clearDiyVideos } = useAppStore()
   const { sendTextMessage, isSpeaking } = realtimeSession
   const scrollRef = useRef<HTMLDivElement>(null)
   const [inputText, setInputText] = useState('')
   const [isSending, setIsSending] = useState(false)
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages or DIY videos
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages])
+  }, [messages, diyVideos])
 
   // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
@@ -79,6 +79,29 @@ export default function ChatPanel({ realtimeSession }: ChatPanelProps) {
                 <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/* DIY Tutorial Videos Section */}
+        {diyVideos && diyVideos.length > 0 && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Video24Regular className="w-5 h-5 text-red-600" />
+                <h4 className="font-semibold text-slate-800">DIY Tutorial Videos</h4>
+              </div>
+              <button
+                onClick={() => clearDiyVideos()}
+                className="text-xs text-slate-500 hover:text-slate-700"
+              >
+                Dismiss
+              </button>
+            </div>
+            <div className="space-y-3">
+              {diyVideos.map((video) => (
+                <DIYVideoCard key={video.video_id} video={video} />
+              ))}
             </div>
           </div>
         )}
@@ -182,4 +205,46 @@ function formatTime(date: Date): string {
     minute: '2-digit',
     hour12: true,
   }).format(date)
+}
+
+function DIYVideoCard({ video }: { video: DIYVideo }) {
+  return (
+    <a
+      href={video.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex gap-3 p-2 bg-white rounded-lg border border-slate-200 hover:border-red-300 hover:shadow-md transition-all group"
+    >
+      {/* Thumbnail */}
+      <div className="relative flex-shrink-0">
+        <img
+          src={video.thumbnail_url}
+          alt={video.title}
+          className="w-32 h-20 object-cover rounded"
+        />
+        {/* Play button overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors rounded">
+          <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+            <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      {/* Video Info */}
+      <div className="flex-1 min-w-0">
+        <h5 className="font-medium text-sm text-slate-800 line-clamp-2 group-hover:text-red-600 transition-colors">
+          {video.title}
+        </h5>
+        <p className="text-xs text-slate-500 mt-1">{video.channel_name}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-1 text-xs text-slate-400">
+            <Eye24Regular className="w-3 h-3" />
+            <span>{video.view_count_formatted}</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  )
 }

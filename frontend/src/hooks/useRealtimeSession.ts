@@ -81,6 +81,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     clearCart,
     setCartOpen,
     searchMode,
+    setDiyVideos,
   } = useAppStore()
 
   // WebSocket and audio refs
@@ -344,6 +345,13 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
         }
         break
 
+      case 'diy_videos':
+        console.log('🎬 DIY Videos received:', data.data?.found || 0)
+        if (data.data?.videos && data.data.videos.length > 0) {
+          setDiyVideos(data.data.videos)
+        }
+        break
+
       case 'error':
         console.error('❌ Error:', data.message)
         break
@@ -351,7 +359,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
       default:
         console.log('Unknown message type:', type)
     }
-  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen])
+  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen, setDiyVideos])
 
   // Connect WebSocket (without audio capture - for text-only mode)
   const connectWebSocket = useCallback(async (): Promise<WebSocket> => {

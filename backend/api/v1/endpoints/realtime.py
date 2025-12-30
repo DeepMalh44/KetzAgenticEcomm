@@ -23,6 +23,7 @@ from agents.shopping_concierge import ShoppingConciergeAgent
 from agents.orders_agent import OrdersAgent
 from agents.returns_agent import ReturnsAgent
 from agents.image_search_agent import ImageSearchAgent
+from tools.youtube_tools import get_diy_videos
 
 logger = structlog.get_logger(__name__)
 
@@ -50,6 +51,7 @@ You help customers with:
 4. **Order Management**: Checking order status, tracking deliveries, and managing purchases.
 5. **Returns & Support**: Assisting with returns, exchanges, and product issues.
 6. **Image Search**: When customers describe or upload images, help find visually similar products.
+7. **DIY Tutorial Videos**: When customers are looking at products that require installation (HVAC filters, flooring, plumbing fixtures, light fixtures, appliances), proactively offer to show YouTube DIY tutorial videos.
 
 ## Communication Style:
 - Be warm, helpful, and knowledgeable like a friendly store expert
@@ -85,6 +87,18 @@ You help customers with:
 - get_order_status: Check the status of an existing order
 - initiate_return: Start a return process for a product
 - get_project_recommendations: Get recommended products for a DIY project
+- get_diy_videos: Search for YouTube DIY tutorial videos for product installation
+
+## DIY Video Guidelines:
+When customers are searching for or discussing products that typically need installation or replacement, ALWAYS use get_diy_videos to find helpful tutorials. This is a key feature - customers love seeing how-to videos! Call get_diy_videos for:
+- HVAC filters, air filters, furnace filters
+- Flooring (hardwood, laminate, vinyl, tile)
+- Plumbing fixtures (faucets, toilets, garbage disposals)
+- Light fixtures, ceiling fans
+- Appliances that need installation
+- Paint and painting supplies
+- Any product where customer asks "how to install" or "how to replace"
+After showing products, proactively offer: "Would you like me to find some DIY tutorial videos for installing this?"
 
 ## Cart Workflow:
 When a customer asks to add something to their cart:
@@ -326,6 +340,29 @@ TOOLS = [
             "properties": {},
             "required": []
         }
+    },
+    {
+        "type": "function",
+        "name": "get_diy_videos",
+        "description": """Search for DIY tutorial videos on YouTube related to a product. 
+IMPORTANT: Call this tool whenever a customer searches for products that require installation like HVAC filters, flooring, plumbing fixtures, light fixtures, appliances, or paint.
+Also call when user asks 'how to install', 'how to replace', or mentions 'DIY'.
+This helps customers see helpful installation tutorials alongside product results.
+Returns popular, highly-viewed tutorial videos from YouTube.""",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "product_name": {
+                    "type": "string",
+                    "description": "The name of the product to find DIY tutorials for (e.g., 'HVAC air filter', 'vinyl plank flooring', 'bathroom faucet')"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Optional product category for better search results (e.g., 'hvac', 'flooring', 'plumbing', 'electrical', 'paint')"
+                }
+            },
+            "required": ["product_name"]
+        }
     }
 ]
 
@@ -446,6 +483,35 @@ class RealtimeSession:
         try:
             if tool_name == "search_products":
                 result = await self.shopping_agent.search_products(**arguments)
+                
+                # Automatically fetch DIY videos for installation-related product categories
+                query = arguments.get("query", "").lower()
+                category = arguments.get("category", "").lower() if arguments.get("category") else ""
+                
+                # Categories and keywords that typically need installation tutorials
+                diy_categories = ["hvac", "flooring", "plumbing", "electrical", "appliances", "paint", "kitchen_bath", "outdoor_garden"]
+                diy_keywords = ["filter", "install", "replace", "faucet", "toilet", "flooring", "tile", "light", "fan", "heater", "thermostat", "disposal", "sink"]
+                
+                should_show_diy = (
+                    category in diy_categories or 
+                    any(kw in query for kw in diy_keywords)
+                )
+                
+                if should_show_diy and result.get("products"):
+                    print(f"[DIY VIDEOS] Auto-triggering for query: {query}, category: {category}")
+                    # Get the first product name for video search
+                    first_product = result["products"][0].get("name", query)
+                    diy_result = await get_diy_videos(product_name=first_product, category=category or None)
+                    
+                    if diy_result.get("videos"):
+                        print(f"[DIY VIDEOS] Auto-fetched {len(diy_result['videos'])} videos")
+                        # Send DIY videos to frontend
+                        if not self.websocket_closed:
+                            await self.websocket.send_json({
+                                "type": "diy_videos",
+                                "data": diy_result
+                            })
+                            
             elif tool_name == "get_product_details":
                 result = await self.shopping_agent.get_product_details(**arguments)
             elif tool_name == "check_inventory":
@@ -520,6 +586,11 @@ class RealtimeSession:
                     "action": "clear_cart",
                     "message": "Your cart has been cleared."
                 }
+            elif tool_name == "get_diy_videos":
+                # Get DIY tutorial videos from YouTube
+                print(f"[DIY VIDEOS] Tool called with arguments: {arguments}")
+                result = await get_diy_videos(**arguments)
+                print(f"[DIY VIDEOS] Result: found={result.get('found', 0)}, videos={len(result.get('videos', []))}")
             else:
                 result = {"error": f"Unknown tool: {tool_name}"}
             
@@ -622,6 +693,16 @@ class RealtimeSession:
                                 "action": result_data.get("action"),
                                 "data": result_data
                             })
+                    
+                    # Send DIY videos to frontend
+                    if tool_name == "get_diy_videos":
+                        if result_data.get("videos") and len(result_data["videos"]) > 0:
+                            print(f"[DIY VIDEOS] Sending {len(result_data['videos'])} videos to frontend")
+                            if not self.websocket_closed:
+                                await self.websocket.send_json({
+                                    "type": "diy_videos",
+                                    "data": result_data
+                                })
                     
                     # Send tool result back to GPT-4o
                     await self.openai_ws.send(json.dumps({

@@ -32,6 +32,13 @@
 - **Image Vectors** - Find visually similar products
 - **Faceted Filtering** - Category, price, brand, ratings
 
+### 🎬 YouTube DIY Videos
+- **YouTube Data API v3** - Real-time search for DIY tutorial videos
+- **Smart Suggestions** - Automatically shows relevant tutorials when searching for installable products
+- **High-View Priority** - Prioritizes popular, highly-viewed videos for quality content
+- **Dismissible UI** - Videos appear in chat panel with easy dismiss option
+- **Product Categories** - Optimized for HVAC filters, flooring, plumbing, electrical, paint, and more
+
 ## 🏗️ Architecture
 
 ```
@@ -176,7 +183,13 @@ KetzAgenticEcomm/
 │   │   ├── ai_search.py        # Azure AI Search
 │   │   ├── vision.py           # Azure AI Vision
 │   │   ├── cosmos.py           # Cosmos DB
-│   │   └── blob.py             # Blob Storage
+│   │   ├── blob.py             # Blob Storage
+│   │   └── youtube_service.py  # YouTube DIY Videos API
+│   ├── tools/                  # Agent tools
+│   │   ├── product_tools.py    # Product search tools
+│   │   ├── order_tools.py      # Order management tools
+│   │   ├── return_tools.py     # Return processing tools
+│   │   └── youtube_tools.py    # YouTube DIY video search
 │   ├── config/
 │   │   └── settings.py
 │   ├── main.py
@@ -462,6 +475,9 @@ AZURE_STORAGE_CONTAINER=product-images
 # Azure Communication Services
 ACS_CONNECTION_STRING=xxx
 ACS_PHONE_NUMBER=+1xxxxxxxxxx
+
+# YouTube API (for DIY tutorial videos)
+YOUTUBE_API_KEY=xxx  # Get from Google Cloud Console
 ```
 
 ## 📊 Product Categories

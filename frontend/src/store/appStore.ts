@@ -51,6 +51,18 @@ export interface ChatMessage {
   content: string
   timestamp: Date
   products?: Product[]
+  diyVideos?: DIYVideo[]
+}
+
+export interface DIYVideo {
+  video_id: string
+  title: string
+  url: string
+  thumbnail_url: string
+  view_count: number
+  view_count_formatted: string
+  channel_name: string
+  published_date: string
 }
 
 export type SearchMode = 'semantic' | 'agentic'
@@ -64,6 +76,9 @@ export interface AppState {
   selectedCategory: string | null
   isVoiceSearchResult: boolean  // Flag to prevent auto-refresh overwriting voice/image search results
   searchMode: SearchMode  // Which search endpoint to use for voice/typed search
+  
+  // DIY Videos
+  diyVideos: DIYVideo[]
   
   // Cart
   cartItems: CartItem[]
@@ -89,6 +104,10 @@ export interface AppState {
   setSelectedCategory: (category: string | null) => void
   clearVoiceSearchFlag: () => void
   setSearchMode: (mode: SearchMode) => void
+  
+  // DIY Video Actions
+  setDiyVideos: (videos: DIYVideo[]) => void
+  clearDiyVideos: () => void
   
   // Cart Actions
   addToCart: (product: Product, quantity?: number) => void
@@ -126,6 +145,9 @@ export const useAppStore = create<AppState>()(
       isVoiceSearchResult: false,
       searchMode: 'semantic',
       
+      // DIY Videos state
+      diyVideos: [],
+      
       // Cart state
       cartItems: [],
       isCartOpen: false,
@@ -150,6 +172,10 @@ export const useAppStore = create<AppState>()(
       setSelectedCategory: (category) => set({ selectedCategory: category }),
       clearVoiceSearchFlag: () => set({ isVoiceSearchResult: false }),
       setSearchMode: (mode) => set({ searchMode: mode }),
+      
+      // DIY Video Actions
+      setDiyVideos: (videos) => set({ diyVideos: videos }),
+      clearDiyVideos: () => set({ diyVideos: [] }),
       
       // Cart Actions
       addToCart: (product, quantity = 1) => set((state) => {

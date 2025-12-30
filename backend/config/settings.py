@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     # Application Insights
     applicationinsights_connection_string: str = ""
     
+    # YouTube API Configuration
+    youtube_api_key: str = "AIzaSyDiP1N_9TVBhlP5bnVTGutvHHzLwXemwNY"
+    
     # Server Configuration
     host: str = "0.0.0.0"
     port: int = 8000

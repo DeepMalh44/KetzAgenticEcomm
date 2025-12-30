@@ -10,6 +10,7 @@ from .product_tools import search_products, get_product_details, get_recommendat
 from .order_tools import create_order, get_order_status, cancel_order
 from .return_tools import initiate_return, get_return_status, check_return_eligibility
 from .image_tools import search_by_image
+from .youtube_tools import get_diy_videos, GET_DIY_VIDEOS_TOOL
 
 __all__ = [
     # Product tools
@@ -26,4 +27,7 @@ __all__ = [
     "check_return_eligibility",
     # Image tools
     "search_by_image",
+    # YouTube tools
+    "get_diy_videos",
+    "GET_DIY_VIDEOS_TOOL",
 ]

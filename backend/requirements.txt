@@ -38,6 +38,9 @@ passlib[bcrypt]==1.7.4
 tenacity==8.2.3
 structlog==24.1.0
 
+# YouTube API
+google-api-python-client==2.111.0
+
 # Observability
 opentelemetry-api==1.22.0
 opentelemetry-sdk==1.22.0
