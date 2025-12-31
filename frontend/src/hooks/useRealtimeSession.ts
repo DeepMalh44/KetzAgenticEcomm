@@ -110,30 +110,51 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
 
   // Search counter to track which search is current
   const searchCounterRef = useRef(0)
+  // Accumulated products from multiple rapid tool calls (for multi-category queries)
+  const pendingProductsRef = useRef<Array<{ id: string; name: string }>>([])
+  // Timer to debounce product updates
+  const productAccumulationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Delay before processing accumulated products (allows multiple tool calls to batch)
+  // Increased to 1500ms to allow AI more time to make multiple tool calls
+  const PRODUCT_ACCUMULATION_DELAY = 1500 // ms
+  // Track if we're in the middle of accumulating
+  const isAccumulatingRef = useRef(false)
 
-  // Fetch full product details from the API based on voice search results
-  // Uses either semantic or agentic endpoint based on searchMode
-  const fetchFullProducts = useCallback(async (partialProducts: Array<{ id: string; name: string }>) => {
-    try {
-      if (!partialProducts || partialProducts.length === 0) {
-        console.log('⚠️ No products to fetch')
-        return
+  // Cleanup accumulation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (productAccumulationTimeoutRef.current) {
+        clearTimeout(productAccumulationTimeoutRef.current)
       }
+    }
+  }, [])
 
-      searchCounterRef.current += 1
-      const thisSearchId = searchCounterRef.current
+  // Process accumulated products after debounce period
+  const processAccumulatedProducts = useCallback(async () => {
+    isAccumulatingRef.current = false
+    const productsToFetch = [...pendingProductsRef.current]
+    pendingProductsRef.current = [] // Clear the pending queue
+    
+    if (!productsToFetch || productsToFetch.length === 0) {
+      console.log('⚠️ No accumulated products to fetch')
+      return
+    }
 
-      console.log(`🔍 [Search #${thisSearchId}] Starting ${searchMode} search:`, partialProducts.map(p => p.name))
+    searchCounterRef.current += 1
+    const thisSearchId = searchCounterRef.current
 
-      // Clear previous products IMMEDIATELY
-      setProducts([], true)
+    console.log(`🔍 [Search #${thisSearchId}] Processing ${productsToFetch.length} accumulated products:`, 
+      productsToFetch.map(p => p.name))
 
-      let results: any[] = []
+    // Clear previous products only when we start processing the batch
+    setProducts([], true)
 
+    let results: any[] = []
+
+    try {
       if (searchMode === 'agentic') {
         // Use agentic retrieval - combine all product names into one query
-        // This lets the LLM decompose the query intelligently
-        const combinedQuery = partialProducts.map(p => p.name).join(', ')
+        const combinedQuery = productsToFetch.map(p => p.name).join(', ')
         console.log(`🤖 [Agentic] Combined query: "${combinedQuery}"`)
         
         const response = await fetch(`${BACKEND_URL}/api/v1/agentic/search`, {
@@ -148,18 +169,19 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
           console.log(`🤖 [Agentic] Got ${results.length} products`)
         }
       } else {
-        // Use semantic search - search for each product individually
-        const searchPromises = partialProducts.slice(0, 5).map(async (p) => {
+        // Use semantic search - search for each product category with more results
+        const searchPromises = productsToFetch.slice(0, 10).map(async (p) => {
           const searchResponse = await fetch(
-            `${BACKEND_URL}/api/v1/products/search?query=${encodeURIComponent(p.name)}&limit=1`
+            `${BACKEND_URL}/api/v1/products/search?query=${encodeURIComponent(p.name)}&limit=4`
           )
           if (searchResponse.ok) {
             const data = await searchResponse.json()
-            return data.products?.[0] || null
+            return data.products || []
           }
-          return null
+          return []
         })
-        results = await Promise.all(searchPromises)
+        const allResults = await Promise.all(searchPromises)
+        results = allResults.flat()
       }
 
       // Check if this is still the latest search
@@ -177,12 +199,48 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
 
       if (uniqueProducts.length > 0 && thisSearchId === searchCounterRef.current) {
         setProducts(uniqueProducts, true)
-        console.log(`✅ [Search #${thisSearchId}] Updated products:`, uniqueProducts.length)
+        console.log(`✅ [Search #${thisSearchId}] Updated with ${uniqueProducts.length} unique products`)
       }
     } catch (error) {
-      console.error('Failed to fetch full products:', error)
+      console.error('Failed to fetch accumulated products:', error)
     }
   }, [setProducts, searchMode])
+
+  // Fetch full product details from the API based on voice search results
+  // Uses debounce/accumulation pattern to handle rapid multiple tool calls
+  const fetchFullProducts = useCallback((partialProducts: Array<{ id: string; name: string }>) => {
+    if (!partialProducts || partialProducts.length === 0) {
+      console.log('⚠️ No products received')
+      return
+    }
+
+    console.log(`📥 Accumulating products:`, partialProducts.map(p => p.name))
+
+    // Mark that we're accumulating products - don't clear the display while this is happening
+    isAccumulatingRef.current = true
+
+    // Add to pending queue (deduplicate by name to avoid duplicates)
+    partialProducts.forEach(product => {
+      const exists = pendingProductsRef.current.some(
+        p => p.name.toLowerCase() === product.name.toLowerCase()
+      )
+      if (!exists) {
+        pendingProductsRef.current.push(product)
+      }
+    })
+
+    console.log(`📦 Pending products queue size: ${pendingProductsRef.current.length}`)
+
+    // Clear existing timeout and set a new one (debounce pattern)
+    if (productAccumulationTimeoutRef.current) {
+      clearTimeout(productAccumulationTimeoutRef.current)
+    }
+
+    // Wait for more products to accumulate, then process all together
+    productAccumulationTimeoutRef.current = setTimeout(() => {
+      processAccumulatedProducts()
+    }, PRODUCT_ACCUMULATION_DELAY)
+  }, [processAccumulatedProducts])
 
   // Initialize AudioWorklet playback system
   const initPlayback = useCallback(async () => {
