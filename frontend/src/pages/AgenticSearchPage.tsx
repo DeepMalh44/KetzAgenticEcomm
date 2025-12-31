@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import ProductGrid from '../components/ProductGrid'
+import CrossSellPanel from '../components/CrossSellPanel'
 import ImageSearch from '../components/ImageSearch'
 import VoiceAssistant from '../components/VoiceAssistant'
 import ChatPanel from '../components/ChatPanel'
@@ -219,6 +220,9 @@ export default function AgenticSearchPage({ realtimeSession, showImageSearch, se
 
             {/* Products Grid */}
             <ProductGrid products={products} isLoading={isLoading} />
+
+            {/* Cross-Sell Recommendations */}
+            <CrossSellPanel />
           </div>
         </main>
 

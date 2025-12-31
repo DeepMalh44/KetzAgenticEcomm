@@ -65,6 +65,13 @@ export interface DIYVideo {
   published_date: string
 }
 
+export interface CrossSellData {
+  recommendations: Product[]
+  context: 'search' | 'cart'
+  basedOn: string | string[]
+  summary?: string
+}
+
 export type SearchMode = 'semantic' | 'agentic'
 
 export interface AppState {
@@ -79,6 +86,9 @@ export interface AppState {
   
   // DIY Videos
   diyVideos: DIYVideo[]
+  
+  // Cross-Sell
+  crossSellData: CrossSellData | null
   
   // Cart
   cartItems: CartItem[]
@@ -97,7 +107,7 @@ export interface AppState {
   messages: ChatMessage[]
   
   // Product Actions
-  setProducts: (products: Product[], isVoiceSearch?: boolean) => void
+  setProducts: (products: Product[], isVoiceSearch?: boolean, preserveCrossSell?: boolean) => void
   setSelectedProduct: (product: Product | null) => void
   setLoading: (loading: boolean) => void
   setSearchQuery: (query: string) => void
@@ -108,6 +118,10 @@ export interface AppState {
   // DIY Video Actions
   setDiyVideos: (videos: DIYVideo[]) => void
   clearDiyVideos: () => void
+  
+  // Cross-Sell Actions
+  setCrossSellData: (data: CrossSellData | null) => void
+  clearCrossSellData: () => void
   
   // Cart Actions
   addToCart: (product: Product, quantity?: number) => void
@@ -148,6 +162,9 @@ export const useAppStore = create<AppState>()(
       // DIY Videos state
       diyVideos: [],
       
+      // Cross-Sell state
+      crossSellData: null,
+      
       // Cart state
       cartItems: [],
       isCartOpen: false,
@@ -165,7 +182,11 @@ export const useAppStore = create<AppState>()(
       messages: [],
       
       // Product Actions
-      setProducts: (products, isVoiceSearch = false) => set({ products, isVoiceSearchResult: isVoiceSearch }),
+      setProducts: (products, isVoiceSearch = false, preserveCrossSell = false) => set((state) => ({ 
+        products, 
+        isVoiceSearchResult: isVoiceSearch, 
+        crossSellData: preserveCrossSell ? state.crossSellData : null  // Preserve cross-sell on voice search updates
+      })),
       setSelectedProduct: (product) => set({ selectedProduct: product }),
       setLoading: (loading) => set({ isLoading: loading }),
       setSearchQuery: (query) => set({ searchQuery: query, isVoiceSearchResult: false }),  // Clear flag when user types search
@@ -176,6 +197,10 @@ export const useAppStore = create<AppState>()(
       // DIY Video Actions
       setDiyVideos: (videos) => set({ diyVideos: videos }),
       clearDiyVideos: () => set({ diyVideos: [] }),
+      
+      // Cross-Sell Actions
+      setCrossSellData: (data) => set({ crossSellData: data }),
+      clearCrossSellData: () => set({ crossSellData: null }),
       
       // Cart Actions
       addToCart: (product, quantity = 1) => set((state) => {

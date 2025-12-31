@@ -23,6 +23,7 @@ from agents.shopping_concierge import ShoppingConciergeAgent
 from agents.orders_agent import OrdersAgent
 from agents.returns_agent import ReturnsAgent
 from agents.image_search_agent import ImageSearchAgent
+from agents.cross_sell_agent import CrossSellAgent
 from tools.youtube_tools import get_diy_videos
 
 logger = structlog.get_logger(__name__)
@@ -384,6 +385,7 @@ class RealtimeSession:
         self.orders_agent = OrdersAgent(app_state)
         self.returns_agent = ReturnsAgent(app_state)
         self.image_agent = ImageSearchAgent(app_state)
+        self.cross_sell_agent = CrossSellAgent(app_state)
         
         logger.info("Realtime session created", session_id=session_id)
     
@@ -484,6 +486,34 @@ class RealtimeSession:
             if tool_name == "search_products":
                 result = await self.shopping_agent.search_products(**arguments)
                 
+                # Trigger cross-sell recommendations based on search results
+                print(f"[CROSS-SELL DEBUG] search_products result has products: {bool(result.get('products'))}, count: {len(result.get('products', []))}")
+                if result.get("products"):
+                    try:
+                        print(f"[CROSS-SELL DEBUG] Calling get_cross_sell_for_search with query: {arguments.get('query', '')}")
+                        cross_sell_result = await self.cross_sell_agent.get_cross_sell_for_search(
+                            search_query=arguments.get("query", ""),
+                            search_results=result["products"],
+                            limit=4
+                        )
+                        print(f"[CROSS-SELL DEBUG] Result: success={cross_sell_result.get('success')}, recs={len(cross_sell_result.get('recommendations', []))}")
+                        if cross_sell_result.get("success") and cross_sell_result.get("recommendations"):
+                            print(f"[CROSS-SELL] Found {len(cross_sell_result['recommendations'])} recommendations for search")
+                            print(f"[CROSS-SELL DEBUG] websocket_closed={self.websocket_closed}")
+                            if not self.websocket_closed:
+                                await self.websocket.send_json({
+                                    "type": "cross_sell",
+                                    "context": "search",
+                                    "data": cross_sell_result
+                                })
+                                print(f"[CROSS-SELL DEBUG] Sent cross_sell message to frontend!")
+                        else:
+                            print(f"[CROSS-SELL DEBUG] No recommendations or not successful: {cross_sell_result}")
+                    except Exception as cs_error:
+                        print(f"[CROSS-SELL ERROR] Failed to get cross-sell: {cs_error}")
+                        import traceback
+                        traceback.print_exc()
+                
                 # Automatically fetch DIY videos for installation-related product categories
                 query = arguments.get("query", "").lower()
                 category = arguments.get("category", "").lower() if arguments.get("category") else ""
@@ -563,6 +593,21 @@ class RealtimeSession:
                         "message": f"Added {quantity} x {product['name']} to your cart."
                     }
                     print(f"[ADD TO CART] Success: {result['message']}")
+                    
+                    # Trigger cross-sell recommendations for cart add
+                    # Send updated cross-sell (replaces previous recommendations)
+                    cross_sell_result = await self.cross_sell_agent.get_cross_sell_for_cart(
+                        cart_items=[product],  # The newly added item
+                        limit=6
+                    )
+                    if cross_sell_result.get("success") and cross_sell_result.get("recommendations"):
+                        print(f"[CROSS-SELL] Found {len(cross_sell_result['recommendations'])} cart recommendations")
+                        if not self.websocket_closed:
+                            await self.websocket.send_json({
+                                "type": "cross_sell",
+                                "context": "cart",
+                                "data": cross_sell_result
+                            })
                 else:
                     result = {"success": False, "error": f"Could not find product matching: {product_name}"}
                     print(f"[ADD TO CART] Failed: No products found")

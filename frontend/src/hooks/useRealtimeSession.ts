@@ -82,6 +82,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     setCartOpen,
     searchMode,
     setDiyVideos,
+    setCrossSellData,
   } = useAppStore()
 
   // WebSocket and audio refs
@@ -147,7 +148,8 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
       productsToFetch.map(p => p.name))
 
     // Clear previous products only when we start processing the batch
-    setProducts([], true)
+    // But preserve cross-sell data since it might have been set already
+    setProducts([], true, true)
 
     let results: any[] = []
 
@@ -198,7 +200,8 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
       )
 
       if (uniqueProducts.length > 0 && thisSearchId === searchCounterRef.current) {
-        setProducts(uniqueProducts, true)
+        // Preserve cross-sell data when updating products from voice search
+        setProducts(uniqueProducts, true, true)
         console.log(`✅ [Search #${thisSearchId}] Updated with ${uniqueProducts.length} unique products`)
       }
     } catch (error) {
@@ -410,6 +413,18 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
         }
         break
 
+      case 'cross_sell':
+        console.log('🛒 Cross-sell recommendations received:', data.data?.recommendations?.length || 0)
+        if (data.data?.recommendations && data.data.recommendations.length > 0) {
+          setCrossSellData({
+            recommendations: data.data.recommendations,
+            context: data.context || 'search',
+            basedOn: data.data.based_on || '',
+            summary: data.data.summary || ''
+          })
+        }
+        break
+
       case 'error':
         console.error('❌ Error:', data.message)
         break
@@ -417,7 +432,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
       default:
         console.log('Unknown message type:', type)
     }
-  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen, setDiyVideos])
+  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen, setDiyVideos, setCrossSellData])
 
   // Connect WebSocket (without audio capture - for text-only mode)
   const connectWebSocket = useCallback(async (): Promise<WebSocket> => {

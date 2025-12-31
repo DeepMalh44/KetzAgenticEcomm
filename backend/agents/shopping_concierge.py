@@ -345,6 +345,7 @@ class ShoppingConciergeAgent:
                         {
                             "id": p["id"],
                             "name": p["name"],
+                            "category": p.get("category", ""),  # Include category for cross-sell filtering
                             "price": p.get("sale_price") or p["price"],
                             "original_price": p["price"] if p.get("sale_price") else None,
                             "brand": p.get("brand", ""),
