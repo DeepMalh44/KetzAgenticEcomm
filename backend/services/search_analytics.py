@@ -15,8 +15,6 @@ import uuid
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 import structlog
-from opencensus.ext.azure.log_exporter import AzureLogHandler
-from opencensus.ext.azure import metrics_exporter
 from applicationinsights import TelemetryClient
 
 logger = structlog.get_logger(__name__)
