@@ -39,6 +39,31 @@
 - **Dismissible UI** - Videos appear in chat panel with easy dismiss option
 - **Product Categories** - Optimized for HVAC filters, flooring, plumbing, electrical, paint, and more
 
+## 🧠 Solution Overview
+
+### AI Models Used
+| Model | Purpose |
+|-------|---------|
+| **gpt-4o-realtime-preview** | Voice conversation (speech-to-text, AI responses, text-to-speech) |
+| **gpt-4o** | Image analysis, Agentic search query understanding |
+| **text-embedding-3-large** | Text embeddings for vector search (3072 dimensions) |
+| **Florence** (Azure AI Vision) | Image embeddings for visual search (1024 dimensions) |
+
+### Search Types
+| Type | How it Works |
+|------|--------------|
+| **Semantic Search** | Query → Vector embedding → Cosine similarity match (no AI correction) |
+| **Agentic Search** | Query → GPT-4o understands intent/fixes typos → Vector search (smarter) |
+| **Image Search** | Upload image → GPT-4o Vision describes it → Vector search finds matches |
+
+### Cross-Sell Recommendations
+When you ask about a product via voice:
+1. GPT-4o Realtime extracts the product name from conversation
+2. Backend performs vector search to find semantically related products
+3. Results sent via WebSocket → "You may like" panel appears
+
+**Key insight:** The "intelligence" is in the embeddings - similar product descriptions have similar vectors, so drill bits naturally appear when searching for drills.
+
 ## 🏗️ Architecture
 
 ```
