@@ -136,6 +136,7 @@ export interface AppState {
   setOrders: (orders: Order[]) => void
   addOrder: (order: Order) => void
   setOrdersOpen: (open: boolean) => void
+  setOrderFilter: (orderId: string | null) => void
   
   // Voice Actions
   setListening: (listening: boolean) => void
@@ -172,6 +173,7 @@ export const useAppStore = create<AppState>()(
       // Orders state
       orders: [],
       isOrdersOpen: false,
+      orderFilter: null,
       
       // Voice state
       isListening: false,
@@ -252,7 +254,8 @@ export const useAppStore = create<AppState>()(
       // Order Actions
       setOrders: (orders) => set({ orders }),
       addOrder: (order) => set((state) => ({ orders: [order, ...state.orders] })),
-      setOrdersOpen: (open) => set({ isOrdersOpen: open }),
+      setOrdersOpen: (open) => set({ isOrdersOpen: open, orderFilter: open ? null : null }),
+      setOrderFilter: (orderId) => set({ orderFilter: orderId }),
       
       // Voice Actions
       setListening: (listening) => set({ isListening: listening }),

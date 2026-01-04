@@ -364,6 +364,31 @@ Returns popular, highly-viewed tutorial videos from YouTube.""",
             },
             "required": ["product_name"]
         }
+    },
+    {
+        "type": "function",
+        "name": "view_orders",
+        "description": "Show the customer their order history and past purchases. Use when customer asks to 'show my orders', 'check my orders', 'view order history', or similar requests.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "function",
+        "name": "get_order_by_number",
+        "description": "Look up a specific order by its order number. Use when customer asks 'where is my order' or provides an order number to check status.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "order_number": {
+                    "type": "string",
+                    "description": "The order number or order ID to look up"
+                }
+            },
+            "required": ["order_number"]
+        }
     }
 ]
 
@@ -636,6 +661,20 @@ class RealtimeSession:
                 print(f"[DIY VIDEOS] Tool called with arguments: {arguments}")
                 result = await get_diy_videos(**arguments)
                 print(f"[DIY VIDEOS] Result: found={result.get('found', 0)}, videos={len(result.get('videos', []))}")
+            elif tool_name == "view_orders":
+                result = {
+                    "success": True,
+                    "action": "view_orders",
+                    "message": "Opening your order history..."
+                }
+            elif tool_name == "get_order_by_number":
+                order_number = arguments.get("order_number", "")
+                result = {
+                    "success": True,
+                    "action": "view_orders",
+                    "order_number": order_number,
+                    "message": f"Looking up order {order_number}..."
+                }
             else:
                 result = {"error": f"Unknown tool: {tool_name}"}
             
@@ -748,6 +787,17 @@ class RealtimeSession:
                                     "type": "diy_videos",
                                     "data": result_data
                                 })
+                    
+                    # Send order actions to frontend
+                    if tool_name in ["view_orders", "get_order_by_number"]:
+                        print(f"[ORDERS] Sending order_action to frontend: {tool_name}, data: {result_data}")
+                        if not self.websocket_closed:
+                            await self.websocket.send_json({
+                                "type": "order_action",
+                                "action": result_data.get("action"),
+                                "order_number": result_data.get("order_number"),
+                                "data": result_data
+                            })
                     
                     # Send tool result back to GPT-4o
                     await self.openai_ws.send(json.dumps({

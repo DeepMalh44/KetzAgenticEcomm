@@ -80,6 +80,8 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     removeFromCart,
     clearCart,
     setCartOpen,
+    setOrdersOpen,
+    setOrderFilter,
     searchMode,
     setDiyVideos,
     setCrossSellData,
@@ -425,6 +427,17 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
         }
         break
 
+      case 'order_action':
+        console.log('📦 Order action:', data.action, data.data)
+        if (data.action === 'view_orders') {
+          setOrdersOpen(true)
+          // If order_number is provided, set filter
+          if (data.order_number) {
+            setOrderFilter(data.order_number)
+          }
+        }
+        break
+
       case 'error':
         console.error('❌ Error:', data.message)
         break
@@ -432,7 +445,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
       default:
         console.log('Unknown message type:', type)
     }
-  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen, setDiyVideos, setCrossSellData])
+  }, [addMessage, playAudio, setSpeaking, fetchFullProducts, addToCart, removeFromCart, clearCart, setCartOpen, setOrdersOpen, setOrderFilter, setDiyVideos, setCrossSellData])
 
   // Connect WebSocket (without audio capture - for text-only mode)
   const connectWebSocket = useCallback(async (): Promise<WebSocket> => {

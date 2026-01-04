@@ -50,7 +50,7 @@ const statusConfig: Record<string, { icon: React.ReactNode; color: string; bgCol
 }
 
 export default function OrdersPanel({ onClose }: OrdersPanelProps) {
-  const { orders, setOrders } = useAppStore()
+  const { orders, setOrders, orderFilter } = useAppStore()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isInitiatingReturn, setIsInitiatingReturn] = useState(false)
@@ -74,6 +74,11 @@ export default function OrdersPanel({ onClose }: OrdersPanelProps) {
     }
     fetchOrders()
   }, [setOrders])
+
+  // Filter orders if orderFilter is set
+  const filteredOrders = orderFilter
+    ? orders.filter(order => order.id.toLowerCase().includes(orderFilter.toLowerCase()))
+    : orders
 
   const handleInitiateReturn = async (order: Order) => {
     setIsInitiatingReturn(true)
@@ -136,7 +141,7 @@ export default function OrdersPanel({ onClose }: OrdersPanelProps) {
             <Box24Regular className="w-6 h-6 text-primary-600" />
             <h2 className="text-xl font-bold text-slate-800">My Orders</h2>
             <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-sm font-medium rounded-full">
-              {orders.length} orders
+              {filteredOrders.length} {orderFilter ? 'filtered' : 'orders'}
             </span>
           </div>
           <button 
@@ -153,11 +158,11 @@ export default function OrdersPanel({ onClose }: OrdersPanelProps) {
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"></div>
             </div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <Box24Regular className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 text-lg">No orders yet</p>
-              <p className="text-slate-400 text-sm mt-1">Your order history will appear here</p>
+              <p className="text-slate-500 text-lg">{orderFilter ? 'No orders found matching filter' : 'No orders yet'}</p>
+              <p className="text-slate-400 text-sm mt-1">{orderFilter ? `No orders match: ${orderFilter}` : 'Your order history will appear here'}</p>
             </div>
           ) : selectedOrder ? (
             // Order Detail View
@@ -248,7 +253,7 @@ export default function OrdersPanel({ onClose }: OrdersPanelProps) {
           ) : (
             // Orders List View
             <div className="space-y-4">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <div 
                   key={order.id}
                   onClick={() => setSelectedOrder(order)}
