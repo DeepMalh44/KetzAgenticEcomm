@@ -27,8 +27,9 @@ interface Product {
   price: number;
 }
 
-// TODO: Replace with actual Azure AI Search endpoint
-const SEARCH_API = (import.meta as any).env?.VITE_SEARCH_API || 'http://localhost:8000/api/v1/products/search';
+// Call backend directly - Azure Container Apps are separate
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'https://merchandising-backend.happyisland-58d32b38.eastus2.azurecontainerapps.io';
+const SEARCH_API = `${BACKEND_URL}/api/products/search`;
 
 export default function ProductPicker({ selectedProducts, onSelect, onClose }: ProductPickerProps) {
   const [query, setQuery] = useState('');
@@ -37,18 +38,37 @@ export default function ProductPicker({ selectedProducts, onSelect, onClose }: P
   const [selected, setSelected] = useState<Set<string>>(new Set(selectedProducts));
 
   useEffect(() => {
-    if (query) {
-      searchProducts();
+    if (query && query.length >= 2) {
+      const timeoutId = setTimeout(() => {
+        searchProducts();
+      }, 500); // Debounce 500ms
+      
+      return () => clearTimeout(timeoutId);
     } else {
       setResults([]);
+      setLoading(false);
     }
   }, [query]);
 
   const searchProducts = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${SEARCH_API}?q=${encodeURIComponent(query)}`);
+      console.log('Searching for:', query);
+      console.log('API URL:', SEARCH_API);
+      
+      const url = `${SEARCH_API}?q=${encodeURIComponent(query)}`;
+      console.log('Full URL:', url);
+      
+      const response = await fetch(url);
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Response data:', data);
+      
       setResults(data.results || data.products || []);
     } catch (error) {
       console.error('Failed to search products:', error);

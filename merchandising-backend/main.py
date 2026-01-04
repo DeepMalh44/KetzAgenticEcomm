@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from services.cosmos_db_service import CosmosDBService
 from api import rules
+from api import products
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -56,7 +57,8 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(rules.router, prefix="/api/rules", tags=["rules"])
+app.include_router(rules.router, prefix="/api", tags=["rules"])
+app.include_router(products.router, prefix="/api", tags=["products"])
 
 
 @app.get("/health")

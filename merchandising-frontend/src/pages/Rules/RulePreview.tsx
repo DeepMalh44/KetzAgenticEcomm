@@ -10,7 +10,7 @@ import {
 } from '@fluentui/react-components';
 import { ArrowLeft24Regular, Search24Regular } from '@fluentui/react-icons';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8001';
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'https://merchandising-backend.happyisland-58d32b38.eastus2.azurecontainerapps.io';
 
 interface PreviewResult {
   id: string;

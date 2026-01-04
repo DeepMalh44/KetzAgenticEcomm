@@ -34,7 +34,7 @@ interface MerchandisingRule {
   updated_at: string;
 }
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8001';
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'https://merchandising-backend.happyisland-58d32b38.eastus2.azurecontainerapps.io';
 
 export default function RulesList() {
   const [rules, setRules] = useState<MerchandisingRule[]>([]);
@@ -45,11 +45,32 @@ export default function RulesList() {
 
   const fetchRules = async () => {
     try {
+      console.log('Fetching rules from:', `${API_BASE}/api/rules`);
       const response = await fetch(`${API_BASE}/api/rules`);
+      console.log('Rules response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to fetch rules:', errorText);
+        setRules([]);
+        return;
+      }
+      
       const data = await response.json();
-      setRules(data);
+      console.log('Rules data:', data);
+      
+      // Handle both array and object responses
+      if (Array.isArray(data)) {
+        setRules(data);
+      } else if (data.rules && Array.isArray(data.rules)) {
+        setRules(data.rules);
+      } else {
+        console.error('Unexpected response format:', data);
+        setRules([]);
+      }
     } catch (error) {
       console.error('Failed to fetch rules:', error);
+      setRules([]);
     } finally {
       setLoading(false);
     }

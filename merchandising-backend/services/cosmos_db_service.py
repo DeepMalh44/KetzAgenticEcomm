@@ -30,7 +30,13 @@ class CosmosDBService:
     def _connect(self):
         """Connect to Cosmos DB."""
         try:
-            self.client = AsyncIOMotorClient(settings.azure_cosmos_connection_string)
+            # Ensure retryWrites=false for Cosmos DB MongoDB API
+            connection_string = settings.azure_cosmos_connection_string
+            if "retryWrites" not in connection_string:
+                separator = "&" if "?" in connection_string else "?"
+                connection_string = f"{connection_string}{separator}retryWrites=false"
+            
+            self.client = AsyncIOMotorClient(connection_string)
             self.database = self.client[settings.azure_cosmos_database]
             self.rules_collection = self.database["merchandising_rules"]
             logger.info("✅ Connected to Cosmos DB")
@@ -91,13 +97,18 @@ class CosmosDBService:
             if category:
                 query["conditions.category"] = category
             
-            cursor = self.rules_collection.find(query).limit(limit).sort("priority", -1)
+            # Note: Removed .sort() as Cosmos DB requires indexes for sorting
+            # Rules will be sorted by priority in the application layer
+            cursor = self.rules_collection.find(query).limit(limit)
             docs = await cursor.to_list(length=limit)
             
             rules = []
             for doc in docs:
                 doc["id"] = doc["_id"]
                 rules.append(MerchandisingRule(**doc))
+            
+            # Sort by priority in Python
+            rules.sort(key=lambda r: r.priority, reverse=True)
             
             return rules
         except Exception as e:

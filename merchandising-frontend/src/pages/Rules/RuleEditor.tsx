@@ -11,7 +11,7 @@ import {
 import { ArrowLeft24Regular, Save24Regular } from '@fluentui/react-icons';
 import RuleBuilder from '../../components/RuleBuilder';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8001';
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'https://merchandising-backend.happyisland-58d32b38.eastus2.azurecontainerapps.io';
 
 interface RuleFormData {
   name: string;
@@ -64,15 +64,33 @@ export default function RuleEditor() {
       const url = id ? `${API_BASE}/api/rules/${id}` : `${API_BASE}/api/rules`;
       const method = id ? 'PATCH' : 'POST';
       
-      await fetch(url, {
+      console.log('Saving rule:', formData);
+      console.log('URL:', url);
+      console.log('Method:', method);
+      
+      const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Save failed:', errorData);
+        alert(`Failed to save rule: ${errorData.detail || response.statusText}`);
+        return;
+      }
+      
+      const savedRule = await response.json();
+      console.log('Saved rule:', savedRule);
+      
       navigate('/');
     } catch (error) {
       console.error('Failed to save rule:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('Failed to save rule: ' + errorMessage);
     } finally {
       setSaving(false);
     }

@@ -32,10 +32,10 @@ class MerchandisingRule(BaseModel):
     name: str = Field(..., description="Human-readable rule name")
     description: Optional[str] = Field(default=None, description="Rule description")
     conditions: RuleConditions = Field(..., description="When to apply this rule")
-    actions: List[RuleAction] = Field(..., description="Actions to perform")
+    actions: dict = Field(..., description="Actions to perform")
     enabled: bool = Field(default=True, description="Whether rule is active")
     priority: int = Field(default=10, description="Rule priority (higher = first)")
-    createdBy: str = Field(..., description="User who created the rule")
+    createdBy: str = Field(default="system", description="User who created the rule")
     createdAt: datetime = Field(default_factory=datetime.utcnow)
     updatedAt: Optional[datetime] = Field(default=None)
 
@@ -45,10 +45,10 @@ class RuleCreate(BaseModel):
     name: str
     description: Optional[str] = None
     conditions: RuleConditions
-    actions: List[RuleAction]
+    actions: dict  # Flexible format from frontend
     enabled: bool = True
     priority: int = 10
-    createdBy: str
+    createdBy: str = "system"
 
 
 class RuleUpdate(BaseModel):

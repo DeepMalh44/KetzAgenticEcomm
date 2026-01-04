@@ -26,7 +26,7 @@ router = APIRouter()
 cosmos_service = CosmosDBService()
 
 
-@router.get("/", response_model=RuleListResponse)
+@router.get("/rules", response_model=RuleListResponse)
 async def list_rules(
     enabled_only: bool = Query(False, description="Only return enabled rules"),
     category: Optional[str] = Query(None, description="Filter by category"),
@@ -45,7 +45,7 @@ async def list_rules(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/", response_model=MerchandisingRule, status_code=201)
+@router.post("/rules", response_model=MerchandisingRule, status_code=201)
 async def create_rule(rule_data: RuleCreate):
     """Create a new merchandising rule."""
     try:
@@ -62,7 +62,7 @@ async def create_rule(rule_data: RuleCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{rule_id}", response_model=MerchandisingRule)
+@router.get("/rules/{rule_id}", response_model=MerchandisingRule)
 async def get_rule(rule_id: str):
     """Get a specific rule by ID."""
     try:
@@ -77,7 +77,7 @@ async def get_rule(rule_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.patch("/{rule_id}", response_model=MerchandisingRule)
+@router.patch("/rules/{rule_id}", response_model=MerchandisingRule)
 async def update_rule(rule_id: str, updates: RuleUpdate):
     """Update an existing rule."""
     try:
@@ -99,7 +99,7 @@ async def update_rule(rule_id: str, updates: RuleUpdate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/{rule_id}", status_code=204)
+@router.delete("/rules/{rule_id}", status_code=204)
 async def delete_rule(rule_id: str):
     """Delete a rule."""
     try:
@@ -113,7 +113,7 @@ async def delete_rule(rule_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/{rule_id}/toggle", response_model=MerchandisingRule)
+@router.post("/rules/{rule_id}/toggle", response_model=MerchandisingRule)
 async def toggle_rule(rule_id: str):
     """Toggle rule enabled/disabled status."""
     try:
@@ -133,7 +133,7 @@ async def toggle_rule(rule_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/preview")
+@router.post("/rules/preview")
 async def preview_rules(
     query: str = Query(..., description="Search query"),
     category: Optional[str] = Query(None, description="Category"),
