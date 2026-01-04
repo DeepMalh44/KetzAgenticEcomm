@@ -435,6 +435,9 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
           if (data.order_number) {
             setOrderFilter(data.order_number)
           }
+        } else if (data.action === 'close_orders') {
+          setOrdersOpen(false)
+          setOrderFilter(null)
         }
         break
 

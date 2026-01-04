@@ -97,6 +97,7 @@ export interface AppState {
   // Orders
   orders: Order[]
   isOrdersOpen: boolean
+  orderFilter: string | null
   
   // Voice
   isListening: boolean

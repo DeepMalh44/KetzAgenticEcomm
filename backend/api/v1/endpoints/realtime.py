@@ -389,6 +389,16 @@ Returns popular, highly-viewed tutorial videos from YouTube.""",
             },
             "required": ["order_number"]
         }
+    },
+    {
+        "type": "function",
+        "name": "close_orders",
+        "description": "CLOSE the orders popup UI. Use when customer says 'close orders', 'close my orders', 'hide orders', 'dismiss orders', or wants to close/exit the orders view.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
     }
 ]
 
@@ -675,6 +685,12 @@ class RealtimeSession:
                     "order_number": order_number,
                     "message": f"Looking up order {order_number}..."
                 }
+            elif tool_name == "close_orders":
+                result = {
+                    "success": True,
+                    "action": "close_orders",
+                    "message": "Closing orders view..."
+                }
             else:
                 result = {"error": f"Unknown tool: {tool_name}"}
             
@@ -789,7 +805,7 @@ class RealtimeSession:
                                 })
                     
                     # Send order actions to frontend
-                    if tool_name in ["view_orders", "get_order_by_number"]:
+                    if tool_name in ["view_orders", "get_order_by_number", "close_orders"]:
                         print(f"[ORDERS] Sending order_action to frontend: {tool_name}, data: {result_data}")
                         if not self.websocket_closed:
                             await self.websocket.send_json({

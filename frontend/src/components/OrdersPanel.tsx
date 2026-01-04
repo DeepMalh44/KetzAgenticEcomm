@@ -80,6 +80,13 @@ export default function OrdersPanel({ onClose }: OrdersPanelProps) {
     ? orders.filter(order => order.id.toLowerCase().includes(orderFilter.toLowerCase()))
     : orders
 
+  // Auto-open order details when filtering to a single order
+  useEffect(() => {
+    if (orderFilter && filteredOrders.length === 1 && !selectedOrder) {
+      setSelectedOrder(filteredOrders[0])
+    }
+  }, [orderFilter, filteredOrders, selectedOrder])
+
   const handleInitiateReturn = async (order: Order) => {
     setIsInitiatingReturn(true)
     setReturnMessage(null)
