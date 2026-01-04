@@ -210,7 +210,7 @@ TOOLS = [
     {
         "type": "function",
         "name": "get_order_status",
-        "description": "Check the status of an existing order.",
+        "description": "Get detailed status information about a specific order (backend query only). Use 'view_orders' or 'get_order_by_number' instead if customer wants to SEE their orders in the UI.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -368,7 +368,7 @@ Returns popular, highly-viewed tutorial videos from YouTube.""",
     {
         "type": "function",
         "name": "view_orders",
-        "description": "Show the customer their order history and past purchases. Use when customer asks to 'show my orders', 'check my orders', 'view order history', or similar requests.",
+        "description": "OPEN the orders popup UI to show the customer ALL their order history. Use when customer says 'show my orders', 'view my orders', 'check my orders', 'open my orders', or wants to SEE their order list.",
         "parameters": {
             "type": "object",
             "properties": {},
@@ -378,13 +378,13 @@ Returns popular, highly-viewed tutorial videos from YouTube.""",
     {
         "type": "function",
         "name": "get_order_by_number",
-        "description": "Look up a specific order by its order number. Use when customer asks 'where is my order' or provides an order number to check status.",
+        "description": "OPEN the orders popup UI filtered to a SPECIFIC order number. Use when customer says 'where is order X', 'show me order X', 'check order X status' where X is an order number.",
         "parameters": {
             "type": "object",
             "properties": {
                 "order_number": {
                     "type": "string",
-                    "description": "The order number or order ID to look up"
+                    "description": "The order number or order ID to look up and display"
                 }
             },
             "required": ["order_number"]
