@@ -47,14 +47,14 @@
 | **gpt-4o-realtime-preview** | Voice conversation (speech-to-text, AI responses, text-to-speech) |
 | **gpt-4o** | Image analysis, Agentic search query understanding |
 | **text-embedding-3-large** | Text embeddings for vector search (3072 dimensions) |
-| **Florence** (Azure AI Vision) | Image embeddings for visual search (1024 dimensions) |
+| **text-embedding-3-large** | Text embeddings for semantic search (3072 dimensions) |
 
 ### Search Types
 | Type | How it Works |
 |------|--------------|
 | **Semantic Search** | Query → Vector embedding → Cosine similarity match (no AI correction) |
 | **Agentic Search** | Query → GPT-4o understands intent/fixes typos → Vector search (smarter) |
-| **Image Search** | Upload image → GPT-4o Vision describes it → Vector search finds matches |
+| **Image Search** | Upload image → GPT-4o Vision describes it → Text vector search finds matches |
 
 ### Cross-Sell Recommendations
 When you ask about a product via voice:
@@ -205,8 +205,7 @@ KetzAgenticEcomm/
 │   │   └── product_expert/
 │   ├── services/               # Azure integrations
 │   │   ├── realtime_client.py  # GPT-4o Realtime
-│   │   ├── ai_search.py        # Azure AI Search
-│   │   ├── vision.py           # Azure AI Vision
+│   │   ├── ai_search.py        # Azure AI Search integration
 │   │   ├── cosmos.py           # Cosmos DB
 │   │   ├── blob.py             # Blob Storage
 │   │   └── youtube_service.py  # YouTube DIY Videos API

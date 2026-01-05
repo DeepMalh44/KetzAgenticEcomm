@@ -111,8 +111,8 @@ frontend/
 ## Key Technologies
 
 - **GPT-4o Realtime API** - Voice-to-voice AI
+- **GPT-4o Vision** - Multimodal image analysis
 - **Azure AI Search** - Vector and semantic search
-- **Azure AI Vision** - Image embeddings (Florence model)
 - **Azure Cosmos DB** - MongoDB API database
 - **FastAPI** - Python backend framework
 - **React + Vite** - Frontend framework

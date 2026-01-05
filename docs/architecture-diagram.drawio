@@ -1,263 +1,190 @@
-<mxfile host="app.diagrams.net" modified="2026-01-02T00:00:00.000Z" agent="5.0" etag="architecture" version="21.0.0" type="device">
-  <diagram name="KetzAgenticEcomm Architecture" id="main-architecture">
-    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        
-        <!-- Title -->
-        <mxCell id="title" value="&lt;b&gt;KetzAgenticEcomm - AI-Powered Voice Commerce Architecture&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
-          <mxGeometry x="500" y="20" width="600" height="40" as="geometry" />
-        </mxCell>
-        
-        <!-- User Layer -->
-        <mxCell id="user-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
-          <mxGeometry x="40" y="80" width="1520" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="user-label" value="&lt;b&gt;User Layer&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="50" y="85" width="100" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Browser -->
-        <mxCell id="browser" value="&lt;b&gt;Web Browser&lt;/b&gt;&lt;br&gt;React + TypeScript&lt;br&gt;Vite + TailwindCSS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="600" y="105" width="150" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Microphone -->
-        <mxCell id="microphone" value="🎤&lt;br&gt;&lt;b&gt;Microphone&lt;/b&gt;&lt;br&gt;PCM16 24kHz" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="450" y="100" width="100" height="70" as="geometry" />
-        </mxCell>
-        
-        <!-- Image Upload -->
-        <mxCell id="image-upload" value="📷&lt;br&gt;&lt;b&gt;Image Upload&lt;/b&gt;&lt;br&gt;Drag &amp; Drop" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="800" y="100" width="100" height="70" as="geometry" />
-        </mxCell>
-        
-        <!-- Phone (Future) -->
-        <mxCell id="phone" value="📞&lt;br&gt;&lt;b&gt;Phone/PSTN&lt;/b&gt;&lt;br&gt;(Future: ACS)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="300" y="100" width="100" height="70" as="geometry" />
-        </mxCell>
-        
-        <!-- Azure Resource Group -->
-        <mxCell id="azure-rg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="40" y="200" width="1520" height="750" as="geometry" />
-        </mxCell>
-        <mxCell id="azure-label" value="&lt;b&gt;Azure Resource Group&lt;/b&gt; (rg-ketzagentic)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#0078D4;" vertex="1" parent="1">
-          <mxGeometry x="50" y="205" width="250" height="25" as="geometry" />
-        </mxCell>
-        
-        <!-- Virtual Network -->
-        <mxCell id="vnet" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="60" y="240" width="700" height="400" as="geometry" />
-        </mxCell>
-        <mxCell id="vnet-label" value="&lt;b&gt;Virtual Network&lt;/b&gt; (10.0.0.0/16)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#2E7D32;" vertex="1" parent="1">
-          <mxGeometry x="70" y="245" width="200" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Container Apps Subnet -->
-        <mxCell id="subnet-cae" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;" vertex="1" parent="1">
-          <mxGeometry x="80" y="275" width="660" height="200" as="geometry" />
-        </mxCell>
-        <mxCell id="subnet-cae-label" value="&lt;b&gt;Container Apps Subnet&lt;/b&gt; (10.0.0.0/23)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#388E3C;" vertex="1" parent="1">
-          <mxGeometry x="90" y="280" width="200" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Frontend Container App -->
-        <mxCell id="frontend-app" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br&gt;Container App&lt;br&gt;&lt;hr&gt;React + Nginx&lt;br&gt;Port 80&lt;br&gt;0.25 CPU, 0.5GB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#00796B;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="120" y="310" width="140" height="100" as="geometry" />
-        </mxCell>
-        
-        <!-- Backend Container App -->
-        <mxCell id="backend-app" value="&lt;b&gt;Backend&lt;/b&gt;&lt;br&gt;Container App&lt;br&gt;&lt;hr&gt;FastAPI + WebSocket&lt;br&gt;Port 8000&lt;br&gt;1 CPU, 2GB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#00796B;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="320" y="310" width="150" height="100" as="geometry" />
-        </mxCell>
-        
-        <!-- Backend Components -->
-        <mxCell id="backend-agents" value="&lt;b&gt;Agents&lt;/b&gt;&lt;br&gt;• Shopping Concierge&lt;br&gt;• Cross-Sell Agent&lt;br&gt;• Image Search Agent&lt;br&gt;• Orders/Returns Agent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#F57C00;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
-          <mxGeometry x="520" y="305" width="150" height="90" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="backend-tools" value="&lt;b&gt;Tools&lt;/b&gt;&lt;br&gt;• Product Search&lt;br&gt;• Order Management&lt;br&gt;• Image Analysis&lt;br&gt;• YouTube DIY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#E64A19;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
-          <mxGeometry x="520" y="400" width="150" height="80" as="geometry" />
-        </mxCell>
-        
-        <!-- Private Endpoints Subnet -->
-        <mxCell id="subnet-pe" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;" vertex="1" parent="1">
-          <mxGeometry x="80" y="490" width="660" height="130" as="geometry" />
-        </mxCell>
-        <mxCell id="subnet-pe-label" value="&lt;b&gt;Private Endpoints Subnet&lt;/b&gt; (10.0.2.0/24)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#C62828;" vertex="1" parent="1">
-          <mxGeometry x="90" y="495" width="220" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Cosmos DB Private Endpoint -->
-        <mxCell id="cosmos-pe" value="&lt;b&gt;Cosmos DB&lt;/b&gt;&lt;br&gt;Private Endpoint&lt;br&gt;&lt;hr&gt;MongoDB API&lt;br&gt;Serverless" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#004E8C;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="120" y="520" width="140" height="85" as="geometry" />
-        </mxCell>
-        
-        <!-- Cosmos DB Collections -->
-        <mxCell id="cosmos-collections" value="&lt;b&gt;Collections&lt;/b&gt;&lt;br&gt;• products&lt;br&gt;• orders&lt;br&gt;• sessions&lt;br&gt;• returns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
-          <mxGeometry x="290" y="520" width="100" height="85" as="geometry" />
-        </mxCell>
-        
-        <!-- Azure AI Services Box -->
-        <mxCell id="ai-services" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="800" y="240" width="740" height="250" as="geometry" />
-        </mxCell>
-        <mxCell id="ai-services-label" value="&lt;b&gt;Azure AI Services&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#E65100;" vertex="1" parent="1">
-          <mxGeometry x="810" y="245" width="150" height="25" as="geometry" />
-        </mxCell>
-        
-        <!-- Azure OpenAI -->
-        <mxCell id="openai" value="&lt;b&gt;Azure OpenAI&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;strokeColor=#6A1B9A;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="830" y="280" width="200" height="30" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="gpt4o-realtime" value="&lt;b&gt;gpt-4o-realtime-preview&lt;/b&gt;&lt;br&gt;Voice Conversation&lt;br&gt;Speech-to-Text + TTS&lt;br&gt;Tool Calling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#7B1FA2;" vertex="1" parent="1">
-          <mxGeometry x="830" y="320" width="140" height="80" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="gpt4o" value="&lt;b&gt;gpt-4o&lt;/b&gt;&lt;br&gt;Image Analysis&lt;br&gt;Query Understanding&lt;br&gt;Cross-Sell Recs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#7B1FA2;" vertex="1" parent="1">
-          <mxGeometry x="980" y="320" width="130" height="80" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="embedding" value="&lt;b&gt;text-embedding-3-large&lt;/b&gt;&lt;br&gt;3072 dimensions&lt;br&gt;Semantic Search" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#7B1FA2;" vertex="1" parent="1">
-          <mxGeometry x="830" y="410" width="140" height="65" as="geometry" />
-        </mxCell>
-        
-        <!-- Azure AI Vision -->
-        <mxCell id="ai-vision" value="&lt;b&gt;Azure AI Vision&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Florence&lt;/b&gt;&lt;br&gt;1024 dimensions&lt;br&gt;Image Embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00BCD4;strokeColor=#0097A7;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="980" y="410" width="130" height="75" as="geometry" />
-        </mxCell>
-        
-        <!-- Azure AI Search -->
-        <mxCell id="ai-search" value="&lt;b&gt;Azure AI Search&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="1140" y="280" width="180" height="30" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="search-indexes" value="&lt;b&gt;Indexes&lt;/b&gt;&lt;br&gt;• products (text + vector)&lt;br&gt;• product-images (vector)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#388E3C;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
-          <mxGeometry x="1140" y="320" width="150" height="60" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="search-kb" value="&lt;b&gt;Knowledge Base&lt;/b&gt;&lt;br&gt;• products-kb&lt;br&gt;• Agentic Retrieval&lt;br&gt;• Query Decomposition" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#388E3C;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
-          <mxGeometry x="1140" y="390" width="150" height="70" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="search-features" value="&lt;b&gt;Features&lt;/b&gt;&lt;br&gt;• Semantic Ranking&lt;br&gt;• Vector Search (HNSW)&lt;br&gt;• Synonyms&lt;br&gt;• Filters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#43A047;fontSize=10;align=left;spacingLeft=5;" vertex="1" parent="1">
-          <mxGeometry x="1300" y="320" width="120" height="80" as="geometry" />
-        </mxCell>
-        
-        <!-- Storage & Security Box -->
-        <mxCell id="storage-security" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0288D1;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="800" y="510" width="740" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="storage-label" value="&lt;b&gt;Storage &amp; Security&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#0288D1;" vertex="1" parent="1">
-          <mxGeometry x="810" y="515" width="150" height="25" as="geometry" />
-        </mxCell>
-        
-        <!-- Blob Storage -->
-        <mxCell id="blob-storage" value="&lt;b&gt;Blob Storage&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• product-images&lt;br&gt;• user-uploads&lt;br&gt;• CORS enabled" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2196F3;strokeColor=#1565C0;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="830" y="545" width="130" height="90" as="geometry" />
-        </mxCell>
-        
-        <!-- Key Vault -->
-        <mxCell id="keyvault" value="&lt;b&gt;Key Vault&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• API Keys&lt;br&gt;• Connection Strings&lt;br&gt;• Managed Identity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFC107;strokeColor=#FFA000;" vertex="1" parent="1">
-          <mxGeometry x="980" y="545" width="130" height="90" as="geometry" />
-        </mxCell>
-        
-        <!-- App Insights -->
-        <mxCell id="app-insights" value="&lt;b&gt;Application Insights&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• Telemetry&lt;br&gt;• Search Analytics&lt;br&gt;• Click Tracking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#673AB7;strokeColor=#512DA8;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="1130" y="545" width="140" height="90" as="geometry" />
-        </mxCell>
-        
-        <!-- Container Registry -->
-        <mxCell id="acr" value="&lt;b&gt;Container Registry&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• frontend:latest&lt;br&gt;• backend:latest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#795548;strokeColor=#5D4037;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="1290" y="545" width="130" height="90" as="geometry" />
-        </mxCell>
-        
-        <!-- External Services Box -->
-        <mxCell id="external" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#9E9E9E;strokeWidth=2;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="800" y="670" width="740" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="external-label" value="&lt;b&gt;External Services&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#616161;" vertex="1" parent="1">
-          <mxGeometry x="810" y="675" width="150" height="25" as="geometry" />
-        </mxCell>
-        
-        <!-- YouTube API -->
-        <mxCell id="youtube" value="&lt;b&gt;YouTube Data API v3&lt;/b&gt;&lt;br&gt;&lt;hr&gt;DIY Tutorial Videos&lt;br&gt;Installation Guides" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF0000;strokeColor=#CC0000;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="830" y="705" width="150" height="55" as="geometry" />
-        </mxCell>
-        
-        <!-- ACS (Future) -->
-        <mxCell id="acs" value="&lt;b&gt;Azure Comm Services&lt;/b&gt;&lt;br&gt;&lt;hr&gt;Phone/PSTN (Future)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9E9E9E;strokeColor=#616161;fontColor=#FFFFFF;dashed=1;" vertex="1" parent="1">
-          <mxGeometry x="1000" y="705" width="150" height="55" as="geometry" />
-        </mxCell>
-        
-        <!-- Data Flow Legend -->
-        <mxCell id="legend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;" vertex="1" parent="1">
-          <mxGeometry x="60" y="670" width="700" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="legend-title" value="&lt;b&gt;Data Flows&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="70" y="675" width="80" height="20" as="geometry" />
-        </mxCell>
-        
-        <mxCell id="flow1" value="&lt;b&gt;1. Voice:&lt;/b&gt; Browser → WebSocket → GPT-4o Realtime → Tool Calls → AI Search/Cosmos → Response Audio" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="70" y="695" width="680" height="15" as="geometry" />
-        </mxCell>
-        <mxCell id="flow2" value="&lt;b&gt;2. Semantic:&lt;/b&gt; Query → text-embedding-3-large → Vector Search (HNSW) → Ranked Results" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="70" y="712" width="680" height="15" as="geometry" />
-        </mxCell>
-        <mxCell id="flow3" value="&lt;b&gt;3. Agentic:&lt;/b&gt; Query → GPT-4o (intent) → Knowledge Base → Query Decomposition → Reranked Results" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="70" y="729" width="680" height="15" as="geometry" />
-        </mxCell>
-        <mxCell id="flow4" value="&lt;b&gt;4. Image:&lt;/b&gt; Upload → GPT-4o Vision → Description → Semantic Search → Similar Products" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="70" y="746" width="680" height="15" as="geometry" />
-        </mxCell>
-        
-        <!-- Models Summary Box -->
-        <mxCell id="models-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;" vertex="1" parent="1">
-          <mxGeometry x="60" y="790" width="400" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="models-title" value="&lt;b&gt;AI Models Used&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#7B1FA2;" vertex="1" parent="1">
-          <mxGeometry x="70" y="795" width="150" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="models-table" value="&lt;table style=&quot;font-size:10px;&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;Model&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;gpt-4o-realtime-preview&lt;/td&gt;&lt;td&gt;Voice (STT + TTS + Conversation)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;gpt-4o&lt;/td&gt;&lt;td&gt;Image Analysis, Query Understanding&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;text-embedding-3-large&lt;/td&gt;&lt;td&gt;Text Vectors (3072 dims)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Florence (AI Vision)&lt;/td&gt;&lt;td&gt;Image Vectors (1024 dims)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="70" y="820" width="380" height="100" as="geometry" />
-        </mxCell>
-        
-        <!-- Search Types Box -->
-        <mxCell id="search-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;" vertex="1" parent="1">
-          <mxGeometry x="480" y="790" width="400" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="search-title" value="&lt;b&gt;Search Types&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#2E7D32;" vertex="1" parent="1">
-          <mxGeometry x="490" y="795" width="150" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="search-table" value="&lt;table style=&quot;font-size:10px;&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;Type&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;How It Works&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Semantic&lt;/td&gt;&lt;td&gt;Query → Vector → Cosine Similarity (no AI fix)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Agentic&lt;/td&gt;&lt;td&gt;Query → GPT-4o Intent → KB Decomposition&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Image&lt;/td&gt;&lt;td&gt;Upload → GPT-4o Vision → Vector Search&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Voice&lt;/td&gt;&lt;td&gt;Audio → GPT-4o Realtime → Tool Calls&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="490" y="820" width="380" height="100" as="geometry" />
-        </mxCell>
-        
-        <!-- Tech Stack Box -->
-        <mxCell id="tech-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;" vertex="1" parent="1">
-          <mxGeometry x="900" y="790" width="350" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="tech-title" value="&lt;b&gt;Technology Stack&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#1976D2;" vertex="1" parent="1">
-          <mxGeometry x="910" y="795" width="150" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="tech-content" value="&lt;b&gt;Frontend:&lt;/b&gt; React 18, TypeScript, Vite, TailwindCSS, Zustand&lt;br&gt;&lt;b&gt;Backend:&lt;/b&gt; FastAPI, Python 3.11, WebSockets, AsyncIO&lt;br&gt;&lt;b&gt;Infra:&lt;/b&gt; Terraform, Container Apps, VNet, Private Endpoints&lt;br&gt;&lt;b&gt;Data:&lt;/b&gt; Cosmos DB (MongoDB API), Blob Storage&lt;br&gt;&lt;b&gt;AI:&lt;/b&gt; Azure OpenAI, AI Search, AI Vision" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="910" y="820" width="330" height="100" as="geometry" />
-        </mxCell>
-        
-        <!-- Cross-Sell Box -->
-        <mxCell id="crosssell-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;" vertex="1" parent="1">
-          <mxGeometry x="1270" y="790" width="280" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="crosssell-title" value="&lt;b&gt;Cross-Sell Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#F9A825;" vertex="1" parent="1">
-          <mxGeometry x="1280" y="795" width="150" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="crosssell-content" value="1. User asks about product (voice)&lt;br&gt;2. GPT-4o extracts product name&lt;br&gt;3. Vector search finds similar items&lt;br&gt;4. Filter out main product&lt;br&gt;5. Send via WebSocket&lt;br&gt;6. &quot;You may like&quot; panel appears" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="1280" y="820" width="260" height="100" as="geometry" />
-        </mxCell>
-        
-      </root>
-    </mxGraphModel>
-  </diagram>
+<mxfile host="65bd71144e">
+    <diagram name="KetzAgenticEcomm Architecture" id="main-architecture">
+        <mxGraphModel dx="435" dy="716" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;b&gt;KetzAgenticEcomm - AI-Powered Voice Commerce Architecture&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="20" width="600" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="user-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;dashPattern=5 5;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="1520" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="user-label" value="&lt;b&gt;User Layer&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="85" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="browser" value="&lt;b&gt;Web Browser&lt;/b&gt;&lt;br&gt;React + TypeScript&lt;br&gt;Vite + TailwindCSS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="105" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="microphone" value="🎤&lt;br&gt;&lt;b&gt;Microphone&lt;/b&gt;&lt;br&gt;PCM16 24kHz" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="100" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="image-upload" value="📷&lt;br&gt;&lt;b&gt;Image Upload&lt;/b&gt;&lt;br&gt;Drag &amp; Drop" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="100" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="phone" value="📞&lt;br&gt;&lt;b&gt;Phone/PSTN&lt;/b&gt;&lt;br&gt;(Future: ACS)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="100" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-rg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="200" width="1520" height="750" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-label" value="&lt;b&gt;Azure Resource Group&lt;/b&gt; (rg-ketzagentic)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="205" width="250" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="vnet" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="240" width="700" height="400" as="geometry"/>
+                </mxCell>
+                <mxCell id="vnet-label" value="&lt;b&gt;Virtual Network&lt;/b&gt; (10.0.0.0/16)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#2E7D32;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="245" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="subnet-cae" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="275" width="660" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="subnet-cae-label" value="&lt;b&gt;Container Apps Subnet&lt;/b&gt; (10.0.0.0/23)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#388E3C;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="280" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="frontend-app" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br&gt;Container App&lt;br&gt;&lt;hr&gt;React + Nginx&lt;br&gt;Port 80&lt;br&gt;0.25 CPU, 0.5GB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#00796B;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="310" width="140" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="backend-app" value="&lt;b&gt;Backend&lt;/b&gt;&lt;br&gt;Container App&lt;br&gt;&lt;hr&gt;FastAPI + WebSocket&lt;br&gt;Port 8000&lt;br&gt;1 CPU, 2GB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4DB6AC;strokeColor=#00796B;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="310" width="150" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="backend-agents" value="&lt;b&gt;Agents&lt;/b&gt;&lt;br&gt;• Shopping Concierge&lt;br&gt;• Cross-Sell Agent&lt;br&gt;• Image Search Agent&lt;br&gt;• Orders/Returns Agent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#F57C00;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="305" width="150" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="backend-tools" value="&lt;b&gt;Tools&lt;/b&gt;&lt;br&gt;• Product Search&lt;br&gt;• Order Management&lt;br&gt;• Image Analysis&lt;br&gt;• YouTube DIY" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#E64A19;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="400" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="subnet-pe" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="490" width="660" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="subnet-pe-label" value="&lt;b&gt;Private Endpoints Subnet&lt;/b&gt; (10.0.2.0/24)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#C62828;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="495" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="cosmos-pe" value="&lt;b&gt;Cosmos DB&lt;/b&gt;&lt;br&gt;Private Endpoint&lt;br&gt;&lt;hr&gt;MongoDB API&lt;br&gt;Serverless" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#004E8C;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="520" width="140" height="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="cosmos-collections" value="&lt;b&gt;Collections&lt;/b&gt;&lt;br&gt;• products&lt;br&gt;• orders&lt;br&gt;• sessions&lt;br&gt;• returns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="520" width="100" height="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="ai-services" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="240" width="740" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="ai-services-label" value="&lt;b&gt;Azure AI Services&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#E65100;" parent="1" vertex="1">
+                    <mxGeometry x="810" y="245" width="150" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="openai" value="&lt;b&gt;Azure OpenAI&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;strokeColor=#6A1B9A;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="280" width="200" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="gpt4o-realtime" value="&lt;b&gt;gpt-4o-realtime-preview&lt;/b&gt;&lt;br&gt;Voice Conversation&lt;br&gt;Speech-to-Text + TTS&lt;br&gt;Tool Calling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="320" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="gpt4o" value="&lt;b&gt;gpt-4o&lt;/b&gt;&lt;br&gt;Image Analysis&lt;br&gt;Query Understanding&lt;br&gt;Cross-Sell Recs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="320" width="130" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="embedding" value="&lt;b&gt;text-embedding-3-large&lt;/b&gt;&lt;br&gt;3072 dimensions&lt;br&gt;Semantic Search" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="410" width="140" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="ai-vision" value="&lt;b&gt;Azure AI Vision&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Florence&lt;/b&gt;&lt;br&gt;1024 dimensions&lt;br&gt;Image Embeddings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00BCD4;strokeColor=#0097A7;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="410" width="130" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="ai-search" value="&lt;b&gt;Azure AI Search&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="280" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="search-indexes" value="&lt;b&gt;Indexes&lt;/b&gt;&lt;br&gt;• products (text + vector)&lt;br&gt;• product-images (vector)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#388E3C;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="320" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="search-kb" value="&lt;b&gt;Knowledge Base&lt;/b&gt;&lt;br&gt;• products-kb&lt;br&gt;• Agentic Retrieval&lt;br&gt;• Query Decomposition" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#388E3C;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="390" width="150" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="search-features" value="&lt;b&gt;Features&lt;/b&gt;&lt;br&gt;• Semantic Ranking&lt;br&gt;• Vector Search (HNSW)&lt;br&gt;• Synonyms&lt;br&gt;• Filters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#43A047;fontSize=10;align=left;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="1300" y="320" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="storage-security" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0288D1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="510" width="740" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="storage-label" value="&lt;b&gt;Storage &amp; Security&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#0288D1;" parent="1" vertex="1">
+                    <mxGeometry x="810" y="515" width="150" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="blob-storage" value="&lt;b&gt;Blob Storage&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• product-images&lt;br&gt;• user-uploads&lt;br&gt;• CORS enabled" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2196F3;strokeColor=#1565C0;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="545" width="130" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="keyvault" value="&lt;b&gt;Key Vault&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• API Keys&lt;br&gt;• Connection Strings&lt;br&gt;• Managed Identity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFC107;strokeColor=#FFA000;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="545" width="130" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="app-insights" value="&lt;b&gt;Application Insights&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• Telemetry&lt;br&gt;• Search Analytics&lt;br&gt;• Click Tracking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#673AB7;strokeColor=#512DA8;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="545" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="acr" value="&lt;b&gt;Container Registry&lt;/b&gt;&lt;br&gt;&lt;hr&gt;• frontend:latest&lt;br&gt;• backend:latest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#795548;strokeColor=#5D4037;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="1290" y="545" width="130" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="external" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#9E9E9E;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="670" width="740" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="external-label" value="&lt;b&gt;External Services&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#616161;" parent="1" vertex="1">
+                    <mxGeometry x="810" y="675" width="150" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="youtube" value="&lt;b&gt;YouTube Data API v3&lt;/b&gt;&lt;br&gt;&lt;hr&gt;DIY Tutorial Videos&lt;br&gt;Installation Guides" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF0000;strokeColor=#CC0000;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="705" width="150" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="acs" value="&lt;b&gt;Azure Comm Services&lt;/b&gt;&lt;br&gt;&lt;hr&gt;Phone/PSTN (Future)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9E9E9E;strokeColor=#616161;fontColor=#FFFFFF;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="705" width="150" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#424242;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="670" width="700" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-title" value="&lt;b&gt;Data Flows&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="675" width="80" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow1" value="&lt;b&gt;1. Voice:&lt;/b&gt; Browser → WebSocket → GPT-4o Realtime → Tool Calls → AI Search/Cosmos → Response Audio" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="695" width="680" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow2" value="&lt;b&gt;2. Semantic:&lt;/b&gt; Query → text-embedding-3-large → Vector Search (HNSW) → Ranked Results" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="712" width="680" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow3" value="&lt;b&gt;3. Agentic:&lt;/b&gt; Query → GPT-4o (intent) → Knowledge Base → Query Decomposition → Reranked Results" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="729" width="680" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow4" value="&lt;b&gt;4. Image:&lt;/b&gt; Upload → GPT-4o Vision → Description → Semantic Search → Similar Products" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="746" width="680" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="models-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="790" width="400" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="models-title" value="&lt;b&gt;AI Models Used&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="795" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="models-table" value="&lt;table style=&quot;font-size:10px;&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;Model&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;Purpose&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;gpt-4o-realtime-preview&lt;/td&gt;&lt;td&gt;Voice (STT + TTS + Conversation)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;gpt-4o&lt;/td&gt;&lt;td&gt;Image Analysis + Query Understanding&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;text-embedding-3-large&lt;/td&gt;&lt;td&gt;All Vector Embeddings (3072 dims)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="820" width="380" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="search-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="790" width="400" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="search-title" value="&lt;b&gt;Search Types&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#2E7D32;" parent="1" vertex="1">
+                    <mxGeometry x="490" y="795" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="search-table" value="&lt;table style=&quot;font-size:10px;&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;Type&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;How It Works&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Semantic&lt;/td&gt;&lt;td&gt;Query → Vector → Cosine Similarity (no AI fix)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Agentic&lt;/td&gt;&lt;td&gt;Query → GPT-4o Intent → KB Decomposition&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Image&lt;/td&gt;&lt;td&gt;Upload → GPT-4o Vision → Vector Search&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Voice&lt;/td&gt;&lt;td&gt;Audio → GPT-4o Realtime → Tool Calls&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="490" y="820" width="380" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="tech-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="790" width="350" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="tech-title" value="&lt;b&gt;Technology Stack&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#1976D2;" parent="1" vertex="1">
+                    <mxGeometry x="910" y="795" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="tech-content" value="&lt;b&gt;Frontend:&lt;/b&gt; React 18, TypeScript, Vite, TailwindCSS, Zustand&lt;br&gt;&lt;b&gt;Backend:&lt;/b&gt; FastAPI, Python 3.11, WebSockets, AsyncIO&lt;br&gt;&lt;b&gt;Infra:&lt;/b&gt; Terraform, Container Apps, VNet, Private Endpoints&lt;br&gt;&lt;b&gt;Data:&lt;/b&gt; Cosmos DB (MongoDB API), Blob Storage&lt;br&gt;&lt;b&gt;AI:&lt;/b&gt; Azure OpenAI (GPT-4o, Embeddings), AI Search" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="910" y="820" width="330" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="crosssell-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;" parent="1" vertex="1">
+                    <mxGeometry x="1270" y="790" width="280" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="crosssell-title" value="&lt;b&gt;Cross-Sell Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#F9A825;" parent="1" vertex="1">
+                    <mxGeometry x="1280" y="795" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="crosssell-content" value="1. User asks about product (voice)&lt;br&gt;2. GPT-4o extracts product name&lt;br&gt;3. Vector search finds similar items&lt;br&gt;4. Filter out main product&lt;br&gt;5. Send via WebSocket&lt;br&gt;6. &quot;You may like&quot; panel appears" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1280" y="820" width="260" height="100" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
 </mxfile>

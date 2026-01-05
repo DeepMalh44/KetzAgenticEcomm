@@ -82,16 +82,9 @@ def create_product_index(use_synonyms: bool = True):
         SimpleField(name="featured", type=SearchFieldDataType.Boolean, filterable=True),
         SimpleField(name="image_url", type=SearchFieldDataType.String),
         
-        # Vector field for image embeddings (1024 dimensions for Florence/AI Vision)
-        SearchField(
-            name="image_embedding",
-            type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-            searchable=True,
-            vector_search_dimensions=1024,
-            vector_search_profile_name="image-vector-profile"
-        ),
-        
         # Vector field for text embeddings (3072 dimensions for text-embedding-3-large)
+        # Note: Image search uses GPT-4o Vision to generate text descriptions,
+        # then searches using text embeddings (not separate image embeddings)
         SearchField(
             name="text_embedding",
             type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
