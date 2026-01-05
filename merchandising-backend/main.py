@@ -15,6 +15,7 @@ from config import settings
 from services.cosmos_db_service import CosmosDBService
 from api import rules
 from api import products
+from api import synonyms
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,6 +60,7 @@ app.add_middleware(
 # Include routers
 app.include_router(rules.router, prefix="/api", tags=["rules"])
 app.include_router(products.router, prefix="/api", tags=["products"])
+app.include_router(synonyms.router, prefix="/api", tags=["synonyms"])
 
 
 @app.get("/health")

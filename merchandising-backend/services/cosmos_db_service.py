@@ -13,6 +13,7 @@ from pymongo.errors import DuplicateKeyError
 
 from config import settings
 from models.merchandising_rule import MerchandisingRule
+from models.synonym import SynonymGroup
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class CosmosDBService:
         self.client: Optional[AsyncIOMotorClient] = None
         self.database = None
         self.rules_collection = None
+        self.synonyms_collection = None
         self._connect()
     
     def _connect(self):
@@ -39,6 +41,7 @@ class CosmosDBService:
             self.client = AsyncIOMotorClient(connection_string)
             self.database = self.client[settings.azure_cosmos_database]
             self.rules_collection = self.database["merchandising_rules"]
+            self.synonyms_collection = self.database["synonyms"]
             logger.info("✅ Connected to Cosmos DB")
         except Exception as e:
             logger.error(f"❌ Failed to connect to Cosmos DB: {e}")
@@ -50,6 +53,7 @@ class CosmosDBService:
             # Collections are auto-created in MongoDB API
             # Just verify connection
             await self.rules_collection.find_one()
+            await self.synonyms_collection.find_one()
             logger.info("✅ Cosmos DB containers ready")
         except Exception as e:
             logger.warning(f"Container check: {e}")
@@ -193,4 +197,87 @@ class CosmosDBService:
             return applicable_rules
         except Exception as e:
             logger.error(f"❌ Failed to get active rules: {e}")
+            raise
+    
+    # Synonyms CRUD Operations
+    
+    async def create_synonym(self, synonym: SynonymGroup) -> SynonymGroup:
+        """Create a new synonym group."""
+        try:
+            synonym_dict = synonym.model_dump()
+            synonym_dict["_id"] = synonym_dict["id"]  # Use id as _id for MongoDB
+            await self.synonyms_collection.insert_one(synonym_dict)
+            logger.info(f"✅ Created synonym: {synonym.id}")
+            return synonym
+        except DuplicateKeyError:
+            logger.error(f"❌ Synonym already exists: {synonym.id}")
+            raise ValueError("Synonym with this ID already exists")
+        except Exception as e:
+            logger.error(f"❌ Failed to create synonym: {e}")
+            raise
+    
+    async def get_synonym(self, synonym_id: str) -> Optional[SynonymGroup]:
+        """Get a synonym by ID."""
+        try:
+            doc = await self.synonyms_collection.find_one({"_id": synonym_id})
+            if doc:
+                doc["id"] = doc["_id"]  # Map _id back to id
+                return SynonymGroup(**doc)
+            return None
+        except Exception as e:
+            logger.error(f"❌ Failed to get synonym {synonym_id}: {e}")
+            raise
+    
+    async def list_synonyms(
+        self,
+        enabled_only: bool = False,
+        limit: int = 100
+    ) -> List[SynonymGroup]:
+        """List all synonym groups with optional filters."""
+        try:
+            query = {}
+            if enabled_only:
+                query["enabled"] = True
+            
+            cursor = self.synonyms_collection.find(query).limit(limit)
+            docs = await cursor.to_list(length=limit)
+            
+            synonyms = []
+            for doc in docs:
+                doc["id"] = doc["_id"]
+                synonyms.append(SynonymGroup(**doc))
+            
+            return synonyms
+        except Exception as e:
+            logger.error(f"❌ Failed to list synonyms: {e}")
+            raise
+    
+    async def update_synonym(self, synonym_id: str, updates: dict) -> Optional[SynonymGroup]:
+        """Update a synonym."""
+        try:
+            result = await self.synonyms_collection.find_one_and_update(
+                {"_id": synonym_id},
+                {"$set": updates},
+                return_document=True
+            )
+            
+            if result:
+                result["id"] = result["_id"]
+                logger.info(f"✅ Updated synonym: {synonym_id}")
+                return SynonymGroup(**result)
+            return None
+        except Exception as e:
+            logger.error(f"❌ Failed to update synonym {synonym_id}: {e}")
+            raise
+    
+    async def delete_synonym(self, synonym_id: str) -> bool:
+        """Delete a synonym."""
+        try:
+            result = await self.synonyms_collection.delete_one({"_id": synonym_id})
+            if result.deleted_count > 0:
+                logger.info(f"✅ Deleted synonym: {synonym_id}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"❌ Failed to delete synonym {synonym_id}: {e}")
             raise
