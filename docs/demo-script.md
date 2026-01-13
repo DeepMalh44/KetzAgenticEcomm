@@ -427,7 +427,7 @@
 > "Azure's consumption-based pricing means you pay only for what you use. GPT-4o Realtime charges per token, making it cost-effective for varying workloads."
 
 **Q: Can this integrate with existing e-commerce platforms?**
-> "Yes, the backend APIs are RESTful and can integrate with Shopify, Magento, SAP, or custom platforms."
+> "Yes, the backend APIs are RESTful and can integrate with Shopify, Magento, SAP, or custom platforms. We have especially strong integration capabilities with **Microsoft Dynamics 365** through native Azure connectivity, Dataverse APIs, and Power Platform connectors – making it an ideal choice for organizations already in the Microsoft ecosystem."
 
 **Q: How long does implementation take?**
 > "Typical deployment is 4-6 weeks for a basic implementation, 8-12 weeks for full customization."

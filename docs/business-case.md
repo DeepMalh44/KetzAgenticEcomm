@@ -9,7 +9,7 @@ KetzAgenticEcomm delivers a **next-generation AI-powered shopping experience** t
 - 💰 **10-15% higher average order value**
 - 📞 **30-40% support cost reduction**
 - ⚡ **40% faster time-to-market** vs. AWS/Google alternatives
-- 🎯 **240x first-year ROI** for mid-market businesses
+- 🎯 **810x first-year ROI** for mid-market businesses
 
 ---
 
@@ -371,15 +371,102 @@ Recommendations: Pressure-treated screws, deck stain, post anchors
 - Scale-to-zero: No costs during low traffic (nights, holidays)
 - Autoscaling: Handle Black Friday spike without overprovisioning
 
-**Cost Breakdown (Mid-Market Example):**
-| Service | Monthly Cost | Annual Cost |
-|---------|-------------|-------------|
-| Azure OpenAI (GPT-4o) | $2,500 | $30,000 |
-| Azure AI Search | $1,200 | $14,400 |
-| Cosmos DB | $800 | $9,600 |
-| Container Apps | $400 | $4,800 |
-| Storage & Bandwidth | $300 | $3,600 |
-| **Total Infrastructure** | **$5,200** | **$62,400** |
+**Cost Breakdown (Mid-Market Example - $50M Revenue, ~500K monthly sessions):**
+
+#### Azure OpenAI Services
+
+| Model | Usage Estimate | Pricing | Monthly Cost |
+|-------|---------------|---------|--------------|
+| **GPT-4o (Text/Vision)** | 50M input + 10M output tokens/month | $2.50/1M input, $10/1M output | **$225** |
+| **GPT-4o Realtime (Audio)** | 5M input + 2M output audio tokens/month | $100/1M input, $200/1M output | **$900** |
+| **text-embedding-3-large** | 20M tokens/month (product embeddings + queries) | $0.13/1M tokens | **$3** |
+| **Subtotal: Azure OpenAI** | | | **$1,128** |
+
+> **Note:** Audio token usage assumes ~30% of users engage with voice (~150K voice sessions/month, avg 30 seconds each). Text usage covers search queries, cross-sell recommendations, and image analysis.
+
+#### Azure AI Search
+
+| Tier | Configuration | Features | Monthly Cost |
+|------|--------------|----------|--------------|
+| **Standard S1** | 1 replica, 1 partition (25GB storage, 15M docs) | Semantic ranking, vector search | **$250** |
+| **Semantic Ranker** | ~200K semantic queries/month | $1 per 1,000 queries | **$200** |
+| **Subtotal: AI Search** | | | **$450** |
+
+> **Note:** Standard S1 supports up to 36 search units for scaling. Semantic ranker is optional but recommended for natural language queries.
+
+#### Azure Cosmos DB (MongoDB API)
+
+| Configuration | Details | Monthly Cost |
+|--------------|---------|--------------|
+| **Provisioned Throughput** | 1,000 RU/s (auto-scale to 4,000 RU/s) | **$580** |
+| **Storage** | 50GB data + indexes | **$12.50** |
+| **Backup** | Continuous backup (7-day retention) | **$20** |
+| **Subtotal: Cosmos DB** | | **$613** |
+
+> **RU/s Breakdown:**
+> - Product catalog reads: ~200 RU/s baseline
+> - Order writes/reads: ~300 RU/s baseline  
+> - Session management: ~100 RU/s baseline
+> - Peak scaling (4x): Handles flash sales, promotions
+> 
+> **Alternative:** Serverless at $0.25/1M RUs if traffic is unpredictable (better for <100K sessions/month)
+
+#### Azure Container Apps
+
+| Component | Configuration | Monthly Cost |
+|-----------|--------------|--------------|
+| **Backend API** | 2 vCPU, 4GB RAM, 2 replicas min | **$150** |
+| **Frontend** | 1 vCPU, 2GB RAM, 2 replicas min | **$75** |
+| **Merchandising Backend** | 1 vCPU, 2GB RAM, 1 replica | **$40** |
+| **Merchandising Frontend** | 0.5 vCPU, 1GB RAM, 1 replica | **$20** |
+| **Subtotal: Container Apps** | | **$285** |
+
+> **Note:** Container Apps auto-scale based on HTTP traffic. Costs shown are for always-on minimum replicas. Scale-to-zero available for dev/test.
+
+#### Supporting Services
+
+| Service | Configuration | Monthly Cost |
+|---------|--------------|--------------|
+| **Azure Blob Storage** | 100GB hot tier + CDN | **$25** |
+| **Azure Key Vault** | Secrets management | **$5** |
+| **Application Insights** | 5GB logs/month | **$15** |
+| **Azure Front Door** | WAF + global load balancing (optional) | **$50** |
+| **Subtotal: Supporting** | | **$95** |
+
+---
+
+#### 📊 Total Infrastructure Cost Summary
+
+| Category | Monthly Cost | Annual Cost |
+|----------|-------------|-------------|
+| Azure OpenAI (GPT-4o + Realtime + Embeddings) | $1,128 | $13,536 |
+| Azure AI Search (S1 + Semantic) | $450 | $5,400 |
+| Azure Cosmos DB (1K-4K RU/s) | $613 | $7,356 |
+| Azure Container Apps (4 services) | $285 | $3,420 |
+| Supporting Services | $95 | $1,140 |
+| **Total Infrastructure** | **$2,571** | **$30,852** |
+
+---
+
+#### 💡 Cost Optimization Options
+
+| Optimization | Savings | Trade-off |
+|--------------|---------|-----------|
+| **Reserved Capacity (1-year)** | 20-30% on Cosmos DB, Container Apps | Commitment required |
+| **PTU (Provisioned Throughput Units)** | Predictable GPT-4o costs at scale | $2,000/PTU/month minimum |
+| **Serverless Cosmos DB** | Variable (good for <100K sessions) | 5-second cold start possible |
+| **AI Search Basic Tier** | $70/month (vs $250) | 2GB storage, no semantic ranker |
+| **Scale-to-Zero Container Apps** | 50% on non-prod environments | Cold start latency |
+
+#### 📈 Cost Scaling by Business Size
+
+| Business Size | Monthly Sessions | GPT-4o Realtime | Total Monthly | Total Annual |
+|--------------|------------------|-----------------|---------------|--------------|
+| **Small ($5M rev)** | 50K | $90 | **$800** | **$9,600** |
+| **Mid-Market ($50M rev)** | 500K | $900 | **$2,571** | **$30,852** |
+| **Enterprise ($500M rev)** | 5M | $9,000 | **$18,500** | **$222,000** |
+
+> **Key Insight:** GPT-4o Realtime (voice) is the largest variable cost. For businesses with lower voice adoption, total costs decrease significantly.
 
 **Cost Comparison:**
 - **Self-hosted alternative:** $200K-300K/year (servers, DevOps, redundancy)
@@ -414,24 +501,24 @@ Recommendations: Pressure-treated screws, deck stain, post anchors
 
 #### Infrastructure Costs
 
-| Component | Annual Cost |
-|-----------|-------------|
-| Azure OpenAI | $30,000 |
-| Azure AI Search | $14,400 |
-| Cosmos DB | $9,600 |
-| Container Apps | $4,800 |
-| Storage & Bandwidth | $3,600 |
-| **Total Azure Costs** | **$62,400** |
+| Component | Monthly Cost | Annual Cost |
+|-----------|-------------|-------------|
+| Azure OpenAI (GPT-4o + Realtime + Embeddings) | $1,128 | $13,536 |
+| Azure AI Search (S1 + Semantic) | $450 | $5,400 |
+| Cosmos DB (1K-4K RU/s auto-scale) | $613 | $7,356 |
+| Container Apps (4 services) | $285 | $3,420 |
+| Supporting Services | $95 | $1,140 |
+| **Total Azure Costs** | **$2,571** | **$30,852** |
 
 #### Net Business Impact
 
 | Metric | Value |
 |--------|-------|
 | **Total Annual Benefit** | **$25,012,000** |
-| **Total Annual Cost** | **$62,400** |
-| **Net Annual ROI** | **$24,949,600** |
-| **ROI Multiple** | **400x** |
-| **Payback Period** | **<1 week** |
+| **Total Annual Cost** | **$30,852** |
+| **Net Annual ROI** | **$24,981,148** |
+| **ROI Multiple** | **810x** |
+| **Payback Period** | **<3 days** |
 
 ---
 
@@ -623,7 +710,7 @@ Recommendations: Pressure-treated screws, deck stain, post anchors
 **Business Impact (Mid-Market $50M Business):**
 - 📈 **+$24M revenue** (conversion +20%, AOV +12%, new segments)
 - 📉 **-$1M costs** (support deflection, merchandising efficiency)
-- 💰 **$62K Azure costs** → **400x ROI**
+- 💰 **$31K Azure costs** → **810x ROI**
 
 **Competitive Moat:**
 - Azure-Microsoft-OpenAI partnership ensures 2-3 year exclusivity
